@@ -18,15 +18,13 @@ include_directories(
     src/
 )
 
-add_library(Eidomatica SHARED ${SOURCES})
-add_custom_command(
-    TARGET Eidomatica
+add_custom_target(
+    Version
     COMMAND /bin/bash version.sh
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    PRE_BUILD
-    COMMENT "Versioning..."
-    VERBATIM
 )
+add_library(Eidomatica SHARED ${SOURCES})
+add_dependencies(Eidomatica Version)
 
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
