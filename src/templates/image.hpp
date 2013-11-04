@@ -12,7 +12,7 @@
 #include <string>
 
 #include "c_wrapper.h"
-#include "CImg.h"
+//#include "CImg.h"
 
 namespace elib{
 
@@ -39,7 +39,7 @@ class Image
 		{
 			this->operator=(other);
 		}
-		Image(int rank, int *dimensions, int bit_depth, int channels)
+		Image(int rank, const int *dimensions, int bit_depth, int channels)
 		: bit_depth(bit_depth), channels(channels), rank(rank)
 		{
 			this->dimensions  = new int[rank];
@@ -64,44 +64,44 @@ class Image
 			else
 				std::copy(image->double_data, image->double_data+flattened_length, data);
 		}
-		explicit Image(cimg_library::CImg<type> *image)
-		{
-			if(image->depth() == 1)
-			{
-				rank = 2;
-				dimensions = new int[rank];
-				dimensions[0] = image->width();
-				dimensions[1] = image->height();
-			}
-			else
-			{
-				rank = 3;
-				dimensions = new int[rank];
-				dimensions[0] = image->width();
-				dimensions[1] = image->height();
-				dimensions[2] = image->depth();
-			}
-			channels = 1;
-			if(image->spectrum()>1)
-			{
-				cimg_library::CImg<type> tmp = image->get_channel(0);
-				flattened_length = tmp.size();
-				data = new type[flattened_length];
-				std::copy(tmp.data(), tmp.data() + tmp.size(), data);
-			}
-			else
-			{
-				flattened_length = image->size();
-				data = new type[flattened_length];
-				std::copy(image->data(), image->data() + image->size(), data);
-			}
-			if(image->max() > pow(2,16)-1)//32bit
-				bit_depth = 32;
-			if(image->max() > pow(2,8)-1)//16bit
-				bit_depth = 16;
-			else//8bit
-				bit_depth = 8;
-		}
+//		explicit Image(cimg_library::CImg<type> *image)
+//		{
+//			if(image->depth() == 1)
+//			{
+//				rank = 2;
+//				dimensions = new int[rank];
+//				dimensions[0] = image->width();
+//				dimensions[1] = image->height();
+//			}
+//			else
+//			{
+//				rank = 3;
+//				dimensions = new int[rank];
+//				dimensions[0] = image->width();
+//				dimensions[1] = image->height();
+//				dimensions[2] = image->depth();
+//			}
+//			channels = 1;
+//			if(image->spectrum()>1)
+//			{
+//				cimg_library::CImg<type> tmp = image->get_channel(0);
+//				flattened_length = tmp.size();
+//				data = new type[flattened_length];
+//				std::copy(tmp.data(), tmp.data() + tmp.size(), data);
+//			}
+//			else
+//			{
+//				flattened_length = image->size();
+//				data = new type[flattened_length];
+//				std::copy(image->data(), image->data() + image->size(), data);
+//			}
+//			if(image->max() > pow(2,16)-1)//32bit
+//				bit_depth = 32;
+//			if(image->max() > pow(2,8)-1)//16bit
+//				bit_depth = 16;
+//			else//8bit
+//				bit_depth = 8;
+//		}
 		virtual ~Image()
 		{
 			delete[] dimensions;
@@ -169,41 +169,41 @@ class Image
 
 			return new_image;
 		}
-		static Image<type>* open(std::string file_name)
-		{
-			try
-			{
-				cimg_library::CImg<type> img(file_name.c_str());
-				return new Image<type>(&img);
-			}
-			catch(cimg_library::CImgException &e)
-			{
-				return nullptr;
-			}
-		}
-		void save(std::string file_name)
-		{
-			try
-			{
-				if(this->getRank() == 2)
-				{
-					int width, height, spectrum;
-
-					width = this->getDimensions()[0];
-					height = this->getDimensions()[1];
-					spectrum = this->getChannels();
-					cimg_library::CImg<type> img(width, height, 1, spectrum);
-					std::copy(this->getData(), this->getData()+this->getFlattenedLength(), img.data());
-					img.save(file_name.c_str());
-				}
-				else
-				{
-				}
-			}
-			catch(cimg_library::CImgException &e)
-			{
-			}
-		}
+//		static Image<type>* open(std::string file_name)
+//		{
+//			try
+//			{
+//				cimg_library::CImg<type> img(file_name.c_str());
+//				return new Image<type>(&img);
+//			}
+//			catch(cimg_library::CImgException &e)
+//			{
+//				return nullptr;
+//			}
+//		}
+//		void save(std::string file_name)
+//		{
+//			try
+//			{
+//				if(this->getRank() == 2)
+//				{
+//					int width, height, spectrum;
+//
+//					width = this->getDimensions()[0];
+//					height = this->getDimensions()[1];
+//					spectrum = this->getChannels();
+//					cimg_library::CImg<type> img(width, height, 1, spectrum);
+//					std::copy(this->getData(), this->getData()+this->getFlattenedLength(), img.data());
+//					img.save(file_name.c_str());
+//				}
+//				else
+//				{
+//				}
+//			}
+//			catch(cimg_library::CImgException &e)
+//			{
+//			}
+//		}
 
 		/*******************************************************************************************************
 		 * getter and setter

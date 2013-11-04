@@ -39,6 +39,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libEidomatica/lib}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libEidomatica/lib/glm}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr//lib/c++/v1/"/>
+									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/IncludeFiles/C"/>
+									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions/"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.895061690" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -46,8 +48,8 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.macosx.exe.debug.option.optimization.level.1778124765" name="Optimization Level" superClass="gnu.c.compiler.macosx.exe.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.macosx.exe.debug.option.debugging.level.282610065" name="Debug Level" superClass="gnu.c.compiler.macosx.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.650255453" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/Applications/Mathematica.app//SystemFiles/IncludeFiles/C"/>
-									<listOptionValue builtIn="false" value="/Applications/Mathematica.app//SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions/"/>
+									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions/"/>
+									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/IncludeFiles/C"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.389599775" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

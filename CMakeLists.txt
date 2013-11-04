@@ -8,8 +8,9 @@ set(SOURCES
 	src/maxflow/maxflow.cpp
 	src/utilities/parameters.cpp
 	src/utilities/utilities.cpp
-	src/c_wrapper.cpp
-	src/library_link.c
+#	src/c_wrapper.cpp
+#	src/library_link.c
+    src/library_link.cpp
 )
 
 include_directories(
@@ -17,9 +18,15 @@ include_directories(
     src/
 )
 
-
-
 add_library(Eidomatica SHARED ${SOURCES})
+add_custom_command(
+    TARGET Eidomatica
+    COMMAND /bin/bash version.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    PRE_BUILD
+    COMMENT "Versioning..."
+    VERBATIM
+)
 
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
@@ -29,21 +36,28 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     target_link_libraries(Eidomatica ${Boost_LIBRARIES})
 endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
 find_package(Mathematica)
 if(${Mathematica_WolframLibrary_FOUND})
     include_directories(${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR})
     target_link_libraries(Eidomatica ${Mathematica_MathLink_LIBRARIES})
-    endif()
+endif()
 
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
-    set(CMAKE_CXX_COMPILER g++-mp-4.7)
-    set(CMAKE_C_COMPILER gcc-mp-4.7)
+#    set(CMAKE_CXX_COMPILER g++-mp-4.7)
+#    set(CMAKE_C_COMPILER gcc-mp-4.7)
     set(CMAKE_CXX_FLAGS "-O4 -mtune=native -pipe -Wall -I/opt/local/include -std=c++11 -I/opt/local/include/gcc47/c++ -I/opt/local/include/gcc47/c++/x86_64-apple-darwin12/")
     set(CMAKE_C_FLAGS "-O4 -mtune=native -pipe -Wall -std=c99")
     set_target_properties(Eidomatica
         PROPERTIES
         LINK_FLAGS "-v -L/opt/local/lib/gcc47"
      )
+endif()
+
+if(WIN32)
+endif()
+
+if(UNIX)
 endif()

@@ -8,7 +8,7 @@
 #ifndef CIRCULARLINKEDLIST_HPP_
 #define CIRCULARLINKEDLIST_HPP_
 
-#include "listNode.hpp"
+#include "list_node.hpp"
 
 namespace elib
 {

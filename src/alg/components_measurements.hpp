@@ -11,7 +11,7 @@
 #include <queue>
 #include <set>
 
-#include "templates/masklist.hpp"
+#include "templates/mask_list.hpp"
 
 namespace elib {
 

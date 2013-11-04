@@ -16,7 +16,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "circularLinkedList.hpp"
+#include "circular_linked_list.hpp"
 #include "glm/glm.hpp"
 #include "image.hpp"
 
