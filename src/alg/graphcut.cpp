@@ -14,11 +14,11 @@ namespace elib{
 
 #define GC_INFINITY 300000
 
-Image<int>* graphcut(Image<float> &input_image, Parameters &parameters)
+Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 {
 	Image<int> *binary_image = new Image<int>(input_image.getRank(), input_image.getDimensions(), input_image.getBitDepth(), input_image.getChannels());
 	int nodeCount;
-	float value;
+	int max_intensity, bg, fg, value;
 	int x, y, z;
 	int *nh,
 		nh_length,
@@ -36,7 +36,8 @@ Image<int>* graphcut(Image<float> &input_image, Parameters &parameters)
 	}
 	int width = input_image.getWidth(),
 		height = input_image.getHeight(),
-		depth = input_image.getDepth();
+		depth = input_image.getDepth(),
+		bit_depth = input_image.getBitDepth();
 
 	float c0, c1, lambda1, lambda2, beta;
 	const double *tmp;
@@ -82,12 +83,12 @@ Image<int>* graphcut(Image<float> &input_image, Parameters &parameters)
 		beta = *tmp;
 	}
 
-	float *input_image_data = input_image.getData();
+	int *input_image_data = input_image.getData();
 	int *binary_image_data = binary_image->getData();
 
-//	maxIntensity = pow(2,bitDepth)-1;
-//	bg = c0*maxIntensity;
-//	fg = c1*maxIntensity;
+	max_intensity = pow(2,bit_depth)-1;
+	bg = c0*max_intensity;
+	fg = c1*max_intensity;
 
 	/****** Create the Energy *************************/
 	Energy::Var *varx = new Energy::Var[width*height*depth];
@@ -107,7 +108,7 @@ Image<int>* graphcut(Image<float> &input_image, Parameters &parameters)
 
 				// add likelihood
 				value = input_image_data[nodeCount];
-				energy->add_term1(varx[nodeCount], fabs(value - c0), fabs(value - c1));
+				energy->add_term1(varx[nodeCount], abs(value - bg), abs(value - fg));
 			}
 		}
 	}

@@ -34,19 +34,19 @@ Parameters::~Parameters()
 
 bool Parameters::addParameter(std::string identifier, int value)
 {
-	std::pair<std::unordered_map<std::string,int>::iterator,bool> res = integer_params.insert(std::pair<std::string,int>(identifier,value));
+	std::pair<std::tr1::unordered_map<std::string,int>::iterator,bool> res = integer_params.insert(std::pair<std::string,int>(identifier,value));
 	return res.second;
 }
 
 bool Parameters::addParameter(std::string identifier, double value)
 {
-	std::pair<std::unordered_map<std::string,double>::iterator,bool> res = double_params.insert(std::pair<std::string,double>(identifier,value));
+	std::pair<std::tr1::unordered_map<std::string,double>::iterator,bool> res = double_params.insert(std::pair<std::string,double>(identifier,value));
 	return res.second;
 }
 
 const int* Parameters::getIntegerParameter(std::string identifier) const
 {
-	std::unordered_map<std::string,int>::const_iterator res = integer_params.find(identifier);
+	std::tr1::unordered_map<std::string,int>::const_iterator res = integer_params.find(identifier);
 	if(res == integer_params.end())
 	{
 		return nullptr;
@@ -59,7 +59,7 @@ const int* Parameters::getIntegerParameter(std::string identifier) const
 
 const double* Parameters::getDoubleParameter(std::string identifier) const
 {
-	std::unordered_map<std::string,double>::const_iterator res = double_params.find(identifier);
+	std::tr1::unordered_map<std::string,double>::const_iterator res = double_params.find(identifier);
 	if(res == double_params.end())
 	{
 		return nullptr;

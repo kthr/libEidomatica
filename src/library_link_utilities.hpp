@@ -47,7 +47,9 @@ class LibraryLinkUtilities
 			{
 				rank = int(libData->MTensor_getRank(tensor));
 			}
-			elib::Image<T> *image =  new Image<float>(rank, reinterpret_cast<const int*>(libData->MTensor_getDimensions), int(bit_depth), int(channels));
+			int dimensions[rank];
+			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions);
+			elib::Image<T> *image =  new Image<T>(rank, dimensions, int(bit_depth), int(channels));
 			std::copy(libData->MTensor_getIntegerData(tensor), libData->MTensor_getIntegerData(tensor)+libData->MTensor_getFlattenedLength(tensor), image->getData());
 			return image;
 		}
@@ -63,7 +65,9 @@ class LibraryLinkUtilities
 			{
 				rank = int(libData->MTensor_getRank(tensor));
 			}
-			elib::Image<T> *image = new Image<float>(rank, reinterpret_cast<const int*>(libData->MTensor_getDimensions), int(bit_depth), int(channels));
+			int dimensions[rank];
+			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions);
+			elib::Image<T> *image = new Image<T>(rank, dimensions, int(bit_depth), int(channels));
 			std::copy(libData->MTensor_getRealData(tensor), libData->MTensor_getRealData(tensor)+libData->MTensor_getFlattenedLength(tensor), image->getData());
 			return image;
 		}

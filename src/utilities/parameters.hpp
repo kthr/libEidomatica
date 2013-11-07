@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <string>
 #include <set>
-#include <unordered_map>
+#include <tr1/unordered_map>
 #include <vector>
 
 #include "c_wrapper.h"
@@ -33,8 +33,8 @@ class Parameters
 
 	private:
 		std::set<std::string> identifiers;
-		std::unordered_map<std::string, int> integer_params;
-		std::unordered_map<std::string, double> double_params;
+		std::tr1::unordered_map<std::string, int> integer_params;
+		std::tr1::unordered_map<std::string, double> double_params;
 };
 
 } /* namespace elib */

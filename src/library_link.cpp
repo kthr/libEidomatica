@@ -7,6 +7,8 @@
 
 #include "library_link.hpp"
 
+#include <string>
+
 #include "alg/graphcut.hpp"
 #include "library_link_utilities.hpp"
 #include "revision.hpp"
@@ -15,7 +17,7 @@
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
-	elib::Image<float> *input_image;
+	elib::Image<int> *input_image;
 	elib::Image<int> *binary_image;
 	elib::Parameters params;
 	MTensor binary_tensor;
@@ -24,7 +26,7 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 //	while(debug);
 
 	//get input
-	input_image = elib::LibraryLinkUtilities<float>::llGetRealImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
+	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
 
 	params.addParameter("C0", MArgument_getReal(input[2])); // c0
 	params.addParameter("C1", MArgument_getReal(input[3])); // c1
@@ -40,7 +42,9 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 	}
 
 	//transform and write data to output
-	libData->MTensor_new(MType_Integer, input_image->getRank(), reinterpret_cast<const mint*>(input_image->getDimensions()), &binary_tensor);
+	mint dimensions[input_image->getRank()];
+	std::copy(input_image->getDimensions(), input_image->getDimensions()+input_image->getRank(), dimensions);
+	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
 	std::copy(binary_image->getData(), binary_image->getData()+binary_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
 	MArgument_setMTensor(output,binary_tensor);
 
@@ -52,11 +56,11 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
 #ifndef ELIB_REVISION
-	char version[10] = "Unknown";
-	MArgument_setUTF8String(output, version);
+	std::string version = "Unknown";
+	MArgument_setUTF8String(output, const_cast<char*>(version.c_str()));
 #else
-	char version[10] = ELIB_REVISION;
-	MArgument_setUTF8String(output, version);
+	std::string version = ELIB_REVISION;
+	MArgument_setUTF8String(output, const_cast<char*>(version.c_str()));
 #endif
 	return LIBRARY_NO_ERROR;
 }
