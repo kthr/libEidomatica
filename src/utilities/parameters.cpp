@@ -7,46 +7,36 @@
 
 #include "parameters.hpp"
 
-#include <algorithm>
-#include <iostream>
-#include <sstream>
-
 namespace elib{
 
 Parameters::Parameters()
 {
 }
-Parameters::Parameters(parameters *params)
-{
-	for(int i=0; i<params->int_params_size; ++i)
-	{
-		this->addParameter(std::string(params->int_names[i]), int(params->int_params[i]));
-	}
-	for(int i=0; i<params->double_params_size; ++i)
-	{
-		this->addParameter(std::string(params->double_names[i]), params->double_params[i]);
-	}
-}
-
 Parameters::~Parameters()
 {
 }
 
 bool Parameters::addParameter(std::string identifier, int value)
 {
-	std::pair<std::tr1::unordered_map<std::string,int>::iterator,bool> res = integer_params.insert(std::pair<std::string,int>(identifier,value));
+	auto res = integer_params.insert(std::pair<std::string,int>(identifier,value));
 	return res.second;
 }
 
 bool Parameters::addParameter(std::string identifier, double value)
 {
-	std::pair<std::tr1::unordered_map<std::string,double>::iterator,bool> res = double_params.insert(std::pair<std::string,double>(identifier,value));
+	auto res = double_params.insert(std::pair<std::string,double>(identifier,value));
+	return res.second;
+}
+
+bool Parameters::addParameter(std::string identifier, elib::Tensor<int> &value)
+{
+	auto res = integer_tensor_params.insert(std::pair<std::string, elib::Tensor<int> >(identifier, value));
 	return res.second;
 }
 
 const int* Parameters::getIntegerParameter(std::string identifier) const
 {
-	std::tr1::unordered_map<std::string,int>::const_iterator res = integer_params.find(identifier);
+	auto res = integer_params.find(identifier);
 	if(res == integer_params.end())
 	{
 		return nullptr;
@@ -59,7 +49,7 @@ const int* Parameters::getIntegerParameter(std::string identifier) const
 
 const double* Parameters::getDoubleParameter(std::string identifier) const
 {
-	std::tr1::unordered_map<std::string,double>::const_iterator res = double_params.find(identifier);
+	auto res = double_params.find(identifier);
 	if(res == double_params.end())
 	{
 		return nullptr;
@@ -70,4 +60,18 @@ const double* Parameters::getDoubleParameter(std::string identifier) const
 	}
 }
 
+const elib::Tensor<int>* Parameters::getIntegerTensorParameter(std::string identifier) const
+{
+	auto res = integer_tensor_params.find(identifier);
+	if(res == integer_tensor_params.end())
+	{
+		return nullptr;
+	}
+	else
+	{
+		return &(res->second);
+	}
+}
+
 } /* end namespace elib */
+

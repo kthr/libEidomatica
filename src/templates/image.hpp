@@ -22,8 +22,6 @@ class Image
 	public:
 		Image()
 		{
-			dimensions = NULL;
-			data = NULL;
 		}
 		Image(const Image &other)
 		: bit_depth(other.bit_depth), channels(other.channels), flattened_length(other.flattened_length), rank(other.rank)
@@ -259,12 +257,12 @@ class Image
 		}
 
 	private:
-		int 	*dimensions,
+		type 	*data = nullptr;
+		int 	*dimensions = nullptr,
 				bit_depth,
 				channels,
 				flattened_length,
 				rank;
-		type 	*data;
 
 		friend void swap(Image& first,Image& second)
 		{

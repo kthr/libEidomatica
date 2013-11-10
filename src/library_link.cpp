@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "alg/density.hpp"
 #include "alg/graphcut.hpp"
 #include "library_link_utilities.hpp"
 #include "revision.hpp"
@@ -50,6 +51,45 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 	delete input_image;
 	delete binary_image;
+	return LIBRARY_NO_ERROR;
+}
+
+DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	elib::Parameters params;
+	elib::Tensor<double> *points, *result;
+	MTensor density;
+	elib::Tensor<int> *dimensions, *original_dimensions;
+
+//	int debug = 1;
+//	while(debug);
+
+	points=elib::LibraryLinkUtilities<double>::llGetRealTensor(libData,  MArgument_getMTensor(input[0]));
+	dimensions=elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData,  MArgument_getMTensor(input[1]));
+	params.addParameter("Dimensions", *dimensions);
+	original_dimensions=elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData,  MArgument_getMTensor(input[2]));
+	params.addParameter("OriginalDimensions", *original_dimensions);
+	params.addParameter("Rank", 2);
+	params.addParameter("Radius", MArgument_getReal(input[3]));
+	params.addParameter("LateralProjectionRange", MArgument_getReal(input[4]));
+	params.addParameter("BandWidth", MArgument_getReal(input[5]));
+
+	result = elib::Density::calculateDensity(*points, params);
+	if(result == nullptr)
+	{
+		return LIBRARY_FUNCTION_ERROR;
+	}
+
+	mint dims[result->getRank()];
+	std::copy(result->getDimensions(), result->getDimensions()+result->getRank(), dims);
+	libData->MTensor_new(MType_Real, result->getRank(), dims, &density);
+	std::copy(result->getData(), result->getData()+result->getFlattenedLength(), libData->MTensor_getRealData(density));
+	MArgument_setMTensor(output,density);
+
+	delete points;
+	delete dimensions;
+	delete original_dimensions;
+	delete result;
 	return LIBRARY_NO_ERROR;
 }
 

@@ -8,13 +8,32 @@
 #ifndef TENSOR_HPP_
 #define TENSOR_HPP_
 
+#include <string>
+
 namespace elib{
 
 template <typename T>
 class Tensor
 {
 	public:
-		Tensor();
+		Tensor()
+		{
+
+		}
+		Tensor(const Tensor &other)
+		: flattened_length(other.flattened_length), rank(other.rank)
+		{
+			dimensions = new int[rank];
+			data = new T[flattened_length];
+
+			std::copy(other.dimensions, other.dimensions+rank, dimensions);
+			std::copy(other.data, other.data+flattened_length, data);
+		}
+		Tensor(const Tensor &&other)
+		: Tensor()
+		{
+			this->operator=(other);
+		}
 		Tensor(int rank, int *dimensions) : rank(rank)
 		{
 			if(rank > 0)
@@ -39,9 +58,19 @@ class Tensor
 			delete[] dimensions;
 		}
 
+		Tensor& operator=(Tensor other)
+		{
+			swap(*this,other);
+			return *this;
+		}
+
 		int* getDimensions() const
 		{
 			return dimensions;
+		}
+		int getFlattenedLength() const
+		{
+			return flattened_length;
 		}
 		int getRank() const
 		{
@@ -57,6 +86,16 @@ class Tensor
 		int *dimensions = nullptr,
 			flattened_length = 0,
 			rank = 0;
+
+		friend void swap(Tensor& first,Tensor& second)
+		{
+			using std::swap;
+
+			swap(first.dimensions, second.dimensions);
+			swap(first.flattened_length, second.flattened_length);
+			swap(first.rank, second.rank);
+			swap(first.data, second.data);
+		}
 };
 
 } /* end namespace elib */

@@ -22,6 +22,7 @@ extern "C"
 #endif
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
+DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 
 #ifdef __cplusplus
