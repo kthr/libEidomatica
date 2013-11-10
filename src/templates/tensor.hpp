@@ -46,6 +46,7 @@ class Tensor
 				this->data = new T[flattened_length];
 				this->dimensions = new int[rank];
 				std::copy(dimensions, dimensions + rank, this->dimensions);
+				std::fill_n(this->data, flattened_length, 0);
 			}
 		}
 		Tensor(int rank, int *dimensions, T *data) : Tensor(rank, dimensions)
