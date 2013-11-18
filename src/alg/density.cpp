@@ -21,16 +21,19 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 	glm::vec2 p;
 	std::vector<glm::vec3> polar_coordinates, polar_points;
 
-	const int *rank;
+	const int *rank, *type;
 	const Tensor<int> *dimensions, *original_dimensions;
-	const double *radius, *lateral_projection_range, *band_width;
+	const double *radius, *lateral_projection_range, *band_width, *standard_parallel, *central_meridian;
 	if(
 		(rank = params.getIntegerParameter("Rank")) == nullptr ||
 		(dimensions = params.getIntegerTensorParameter("Dimensions")) == nullptr ||
 		(original_dimensions = params.getIntegerTensorParameter("OriginalDimensions")) == nullptr ||
 		(radius = params.getDoubleParameter("Radius")) == nullptr ||
 		(lateral_projection_range = params.getDoubleParameter("LateralProjectionRange")) == nullptr ||
-		(band_width = params.getDoubleParameter("BandWidth")) == nullptr
+		(band_width = params.getDoubleParameter("BandWidth")) == nullptr ||
+		(standard_parallel = params.getDoubleParameter("StandardParallel")) == nullptr ||
+		(central_meridian = params.getDoubleParameter("CentralMeridian")) == nullptr ||
+		(type = params.getIntegerParameter("Type")) == nullptr
 	)
 	{
 		return nullptr;
