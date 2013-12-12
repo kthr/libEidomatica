@@ -3,7 +3,7 @@ project(libEidomatica)
 
 set(SOURCES 
 #	src/alg/connected_components.cpp
-   src/alg/density.cpp
+    src/alg/density.cpp
 	src/alg/graphcut.cpp
 	src/maxflow/graph.cpp
 	src/maxflow/maxflow.cpp
@@ -45,15 +45,8 @@ endif()
 
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
-#    set(CMAKE_CXX_COMPILER g++-mp-4.7)
-#    set(CMAKE_C_COMPILER gcc-mp-4.7)
-#    set(CMAKE_CXX_FLAGS "-g -pipe -Wall -I/opt/local/include -std=c++11 -I/opt/local/include/gcc47/c++ -I/opt/local/include/gcc47/c++/x86_64-apple-darwin12/")
-    set(CMAKE_CXX_FLAGS "-mtune=native -O4 -pipe -Wall -std=c++11 -stdlib=libc++")
-#    set(CMAKE_CXX_FLAGS "-g -pipe -Wall -std=c++11 -stdlib=libc++")
-    set_target_properties(Eidomatica
-        PROPERTIES
-        LINK_FLAGS "-v -L/opt/local/lib/gcc47"
-     )
+#    set(CMAKE_CXX_FLAGS "-mtune=native -O4 -pipe -Wall -std=c++11 -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS "-g -pipe -Wall -std=c++11 -stdlib=libc++")
 endif()
 
 if(WIN32)

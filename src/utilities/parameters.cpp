@@ -7,6 +7,8 @@
 
 #include "parameters.hpp"
 
+#include <limits>
+
 namespace elib{
 
 Parameters::Parameters()
@@ -34,29 +36,29 @@ bool Parameters::addParameter(std::string identifier, elib::Tensor<int> &value)
 	return res.second;
 }
 
-const int* Parameters::getIntegerParameter(std::string identifier) const
+int Parameters::getIntegerParameter(std::string identifier) const
 {
 	auto res = integer_params.find(identifier);
 	if(res == integer_params.end())
 	{
-		return nullptr;
+		return std::numeric_limits<int>::quiet_NaN();
 	}
 	else
 	{
-		return &(res->second);
+		return res->second;
 	}
 }
 
-const double* Parameters::getDoubleParameter(std::string identifier) const
+double Parameters::getDoubleParameter(std::string identifier) const
 {
 	auto res = double_params.find(identifier);
 	if(res == double_params.end())
 	{
-		return nullptr;
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 	else
 	{
-		return &(res->second);
+		return res->second;
 	}
 }
 

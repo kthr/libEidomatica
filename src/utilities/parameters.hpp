@@ -25,8 +25,8 @@ class Parameters
 		bool addParameter(std::string identifier, int value);
 		bool addParameter(std::string identifier, double value);
 		bool addParameter(std::string identifier, elib::Tensor<int> &tensor);
-		const int* getIntegerParameter(std::string identifier) const;
-		const double* getDoubleParameter(std::string identifier) const;
+		int getIntegerParameter(std::string identifier) const;
+		double getDoubleParameter(std::string identifier) const;
 		const elib::Tensor<int>* getIntegerTensorParameter(std::string identifier) const;
 
 

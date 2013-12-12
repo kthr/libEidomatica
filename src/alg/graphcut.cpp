@@ -39,48 +39,17 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 		depth = input_image.getDepth(),
 		bit_depth = input_image.getBitDepth();
 
-	float c0, c1, lambda1, lambda2, beta;
-	const double *tmp;
+	double c0, c1, lambda1, lambda2, beta;
 
-	if((tmp = parameters.getDoubleParameter("C0")) == nullptr)
+	if(
+		isnan(c0 = parameters.getDoubleParameter("C0")) ||
+		isnan(c1 = parameters.getDoubleParameter("C1")) ||
+		isnan(lambda1 = parameters.getDoubleParameter("Lambda1")) ||
+		isnan(lambda2 = parameters.getDoubleParameter("Lambda2")) ||
+		isnan(beta = parameters.getDoubleParameter("Beta"))
+	)
 	{
 		return nullptr;
-	}
-	else
-	{
-		c0 = *tmp;
-	}
-	if ((tmp = parameters.getDoubleParameter("C1")) == nullptr)
-	{
-		return nullptr;
-	}
-	else
-	{
-		c1 = *tmp;
-	}
-	if ((tmp = parameters.getDoubleParameter("Lambda1")) == nullptr)
-	{
-		return nullptr;
-	}
-	else
-	{
-		lambda1 = *tmp;
-	}
-	if ((tmp = parameters.getDoubleParameter("Lambda2")) == nullptr)
-	{
-		return nullptr;
-	}
-	else
-	{
-		lambda2 = *tmp;
-	}
-	if ((tmp = parameters.getDoubleParameter("Beta")) == nullptr)
-	{
-		return nullptr;
-	}
-	else
-	{
-		beta = *tmp;
 	}
 
 	int *input_image_data = input_image.getData();

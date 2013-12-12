@@ -18,6 +18,24 @@ namespace elib
 		return pow(sin(value/2),2);
 	}
 
+	template <typename T>
+	inline T cot(T val)
+	{
+		return 1/tan(val);
+	}
+
+	template <typename T>
+	inline int sgn(T val)
+	{
+	    return (T(0) < val) - (val < T(0));
+	}
+
+	template <typename T>
+	inline int isnan(T val)
+	{
+		return val != val;
+	}
+
 } /*end namespace elib*/
 
 

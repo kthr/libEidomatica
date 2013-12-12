@@ -73,6 +73,10 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 	params.addParameter("Radius", MArgument_getReal(input[3]));
 	params.addParameter("LateralProjectionRange", MArgument_getReal(input[4]));
 	params.addParameter("BandWidth", MArgument_getReal(input[5]));
+	params.addParameter("Type",int(MArgument_getInteger(input[6])));
+	params.addParameter("CentralMeridian",MArgument_getReal(input[7]));
+	params.addParameter("StandardParallel",MArgument_getReal(input[8]));
+
 
 	result = elib::Density::calculateDensity(*points, params);
 	if(result == nullptr)
