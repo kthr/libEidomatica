@@ -77,7 +77,6 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 	params.addParameter("CentralMeridian",MArgument_getReal(input[7]));
 	params.addParameter("StandardParallel",MArgument_getReal(input[8]));
 
-
 	result = elib::Density::calculateDensity(*points, params);
 	if(result == nullptr)
 	{
