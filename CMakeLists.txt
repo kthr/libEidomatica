@@ -45,12 +45,13 @@ endif()
 
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
-#    set(CMAKE_CXX_FLAGS "-mtune=native -O4 -pipe -Wall -std=c++11 -stdlib=libc++")
-    set(CMAKE_CXX_FLAGS "-g -pipe -Wall -std=c++11 -stdlib=libc++")
+#    set(CMAKE_CXX_COMPILER g++-mp-4.8)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O4 -pipe -Wall -std=c++11 -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS_DEBUG "-v -O0 -g -pipe -Wall -std=c++11 -stdlib=libc++")
 endif()
 
 if(WIN32)
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
 endif()

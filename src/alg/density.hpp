@@ -23,9 +23,9 @@ class Density
 		static elib::Tensor<double>* calculateDensity(elib::Tensor<double> &points, elib::Parameters &params);
 		enum class density_type {BONNE, CARTESIAN, MERCATOR};
 	private:
-		static inline glm::vec3 toPolar(glm::vec2 point, float radius, float lateral_projection_range, int* dimension);
+		static inline glm::vec3 toPolar(glm::vec2 point, float radius, float lateral_projection_range, const int* dimension);
 		static inline double greatCircleDistance(glm::vec3 p1, glm::vec3 p2);
-		static inline bool bonneRegionFunction(glm::vec3 p, const double standard_parallel, const double central_meridian);
+		static inline bool bonneRegionFunction(glm::vec3 p, double standard_parallel, double central_meridian);
 		static glm::vec3 inverseBonne(glm::vec3 p, double standard_parallel, double central_meridian);
 };
 

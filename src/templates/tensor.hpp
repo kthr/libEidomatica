@@ -65,7 +65,7 @@ class Tensor
 			return *this;
 		}
 
-		int* getDimensions() const
+		const int* getDimensions() const
 		{
 			return dimensions;
 		}
@@ -77,7 +77,7 @@ class Tensor
 		{
 			return rank;
 		}
-		T* getData()
+		T* getData() const
 		{
 			return data;
 		}

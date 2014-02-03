@@ -9,6 +9,7 @@
 
 #include "maxflow/energy.h"
 #include "maxflow/graph.h"
+#include "utilities/math_functions.hpp"
 
 namespace elib{
 
@@ -42,11 +43,11 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 	double c0, c1, lambda1, lambda2, beta;
 
 	if(
-		isnan(c0 = parameters.getDoubleParameter("C0")) ||
-		isnan(c1 = parameters.getDoubleParameter("C1")) ||
-		isnan(lambda1 = parameters.getDoubleParameter("Lambda1")) ||
-		isnan(lambda2 = parameters.getDoubleParameter("Lambda2")) ||
-		isnan(beta = parameters.getDoubleParameter("Beta"))
+		elib::isnan(c0 = parameters.getDoubleParameter("C0")) ||
+		elib::isnan(c1 = parameters.getDoubleParameter("C1")) ||
+		elib::isnan(lambda1 = parameters.getDoubleParameter("Lambda1")) ||
+		elib::isnan(lambda2 = parameters.getDoubleParameter("Lambda2")) ||
+		elib::isnan(beta = parameters.getDoubleParameter("Beta"))
 	)
 	{
 		return nullptr;
