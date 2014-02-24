@@ -98,12 +98,13 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 
 DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
+	char *version = new char[1024];
 #ifndef ELIB_REVISION
-	std::string version = "Unknown";
-	MArgument_setUTF8String(output, const_cast<char*>(version.c_str()));
+	strncpy(version,"Unknown",1024);
+	MArgument_setUTF8String(output, version);
 #else
-	std::string version = ELIB_REVISION;
-	MArgument_setUTF8String(output, const_cast<char*>(version.c_str()));
+	strncpy(version,ELIB_REVISION, 1024);
+	MArgument_setUTF8String(output, version);
 #endif
 	return LIBRARY_NO_ERROR;
 }

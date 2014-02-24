@@ -10,6 +10,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "glm/gtx/norm.hpp"
 #include "templates/tensor.hpp"
 #include "utilities/math_functions.hpp"
 
@@ -43,17 +44,19 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 	Tensor<double> *density = new Tensor<double>(rank, const_cast<Tensor<int>* >(dimensions)->getData());
 	double *tensor_data = density->getData();
 	int *dims = const_cast<Tensor<int>* >(dimensions)->getData();
+	int *original_dims = const_cast<Tensor<int>* >(original_dimensions)->getData();
+
 
 	if(rank == 2)
 	{
 		double* point_data = points.getData();
-		for(int k=0; k<points.getFlattenedLength(); k+=2)
-		{
-			polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dimensions->getData()));
-		}
 		switch(type)
 		{
 			case static_cast<int>(density_type::BONNE):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dimensions->getData()));
+				}
 				for(int j = 0; j < dims[1]; ++j)
 				{
 					for (int i = 0; i < dims[0]; ++i)
@@ -71,7 +74,8 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 					{
 						for(unsigned int j=0; j<polar_points.size(); ++j)
 						{
-							tensor_data[c.x + c.y*dims[0]] += exp(-greatCircleDistance(p+glm::vec3(M_PI, M_PI_2, 0), polar_points[j])/band_width);
+							if(greatCircleDistance(p+glm::vec3(M_PI, M_PI_2, 0), polar_points[j]) <= band_width)
+								tensor_data[c.x + c.y*dims[0]] += 1;
 						}
 					}
 					else
@@ -80,7 +84,27 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 					}
 				}
 				break;
+			case static_cast<int>(density_type::CARTESIAN):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(glm::vec3(point_data[k]/original_dims[0],point_data[k+1]/original_dims[1],0));
+				}
+				for(int j=0; j<dims[1]; ++j)
+				{
+					for(int i=0; i<dims[0]; ++i)
+					{
+						p = glm::vec3(i/dims[0],j/dims[1],0);
+						for(auto k=polar_points.begin(); k!=polar_points.end(); ++k)
+							if(std::sqrt(glm::l2Norm(p-*k)) <= band_width)
+								tensor_data[i + j*dims[0]] += 1;
+					}
+				}
+				break;
 			case static_cast<int>(density_type::MERCATOR):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dimensions->getData()));
+				}
 				for(int j=0; j<dims[1]; ++j)
 				{
 					for(int i=0; i<dims[0]; ++i)
@@ -94,7 +118,8 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 					for(unsigned int j=0; j<polar_points.size(); ++j)
 					{
 						c = coordinates[i];
-						tensor_data[c.x + c.y*dims[0]] += exp(-greatCircleDistance(polar_coordinates[i],polar_points[j])/band_width);
+						if(greatCircleDistance(polar_coordinates[i],polar_points[j]) <= band_width)
+							tensor_data[c.x + c.y*dims[0]] += 1;
 					}
 				}
 				break;
