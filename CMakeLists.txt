@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 2.8.4)
 project(libEidomatica)
 
 set(SOURCES 
+    lib/gco/maxflow.cpp
+    lib/gco/GCoptimization.cpp
+    lib/gco/LinkedBlockList.cpp
+    lib/maxflow/graph.cpp
+    lib/maxflow/maxflow.cpp
 #	src/alg/connected_components.cpp
     src/alg/density.cpp
 	src/alg/graphcut.cpp
-	src/maxflow/graph.cpp
-	src/maxflow/maxflow.cpp
+	src/alg/multi_label_graphcut.cpp
+    lib/gco/graph.cpp
 	src/utilities/parameters.cpp
 	src/utilities/utilities.cpp
 #	src/c_wrapper.cpp
@@ -30,24 +35,19 @@ add_dependencies(Eidomatica Version)
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost COMPONENTS filesystem system) 
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    target_link_libraries(Eidomatica ${Boost_LIBRARIES})
-endif()
-
+find_package(Boost REQUIRED COMPONENTS filesystem system)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
 find_package(Mathematica)
-if(${Mathematica_WolframLibrary_FOUND})
-    include_directories(${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR})
-    target_link_libraries(Eidomatica ${Mathematica_MathLink_LIBRARIES})
+if(Boost_FOUND AND ${Mathematica_WolframLibrary_FOUND})
+    include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR})
+    target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARIES})
 endif()
 
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
 #    set(CMAKE_CXX_COMPILER g++-mp-4.8)
     set(CMAKE_CXX_FLAGS_RELEASE "-O4 -pipe -Wall -std=c++11 -stdlib=libc++")
-    set(CMAKE_CXX_FLAGS_DEBUG "-v -O0 -g -pipe -Wall -std=c++11 -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS_DEBUG "-v -g -O0 -pipe -Wall -std=c++11 -stdlib=libc++")
 endif()
 
 if(WIN32)

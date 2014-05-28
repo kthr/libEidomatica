@@ -62,44 +62,6 @@ class Image
 			else
 				std::copy(image->double_data, image->double_data+flattened_length, data);
 		}
-//		explicit Image(cimg_library::CImg<type> *image)
-//		{
-//			if(image->depth() == 1)
-//			{
-//				rank = 2;
-//				dimensions = new int[rank];
-//				dimensions[0] = image->width();
-//				dimensions[1] = image->height();
-//			}
-//			else
-//			{
-//				rank = 3;
-//				dimensions = new int[rank];
-//				dimensions[0] = image->width();
-//				dimensions[1] = image->height();
-//				dimensions[2] = image->depth();
-//			}
-//			channels = 1;
-//			if(image->spectrum()>1)
-//			{
-//				cimg_library::CImg<type> tmp = image->get_channel(0);
-//				flattened_length = tmp.size();
-//				data = new type[flattened_length];
-//				std::copy(tmp.data(), tmp.data() + tmp.size(), data);
-//			}
-//			else
-//			{
-//				flattened_length = image->size();
-//				data = new type[flattened_length];
-//				std::copy(image->data(), image->data() + image->size(), data);
-//			}
-//			if(image->max() > pow(2,16)-1)//32bit
-//				bit_depth = 32;
-//			if(image->max() > pow(2,8)-1)//16bit
-//				bit_depth = 16;
-//			else//8bit
-//				bit_depth = 8;
-//		}
 		virtual ~Image()
 		{
 			delete[] dimensions;
@@ -136,72 +98,6 @@ class Image
 				maximum = std::max(maximum, data[i]);
 			return maximum;
 		}
-
-		/*******************************************************************************************************
-		* conversion and io functions
-		*******************************************************************************************************/
-		cimage* to_cimage(int data_type = INTEGER_TYPE)
-		{
-			cimage *new_image;
-
-			new_image = new cimage;
-			new_image->bit_depth = this->getBitDepth();
-			new_image->channels = this->getChannels();
-			new_image->rank = this->getRank();
-			new_image->dimensions = new mint[this->getRank()];
-			std::copy(this->getDimensions(), this->getDimensions()+this->getRank(), new_image->dimensions);
-			new_image->flattened_length = this->getFlattenedLength();
-			if(data_type == INTEGER_TYPE)
-			{
-				new_image->type = INTEGER_TYPE;
-				new_image->integer_data = new mint[new_image->flattened_length];
-				std::copy(this->getData(), this->getData()+new_image->flattened_length, new_image->integer_data);
-			}
-			else
-			{
-				new_image->type = DOUBLE_TYPE;
-				new_image->double_data = new double[new_image->flattened_length];
-				std::copy(this->getData(), this->getData()+new_image->flattened_length, new_image->double_data);
-			}
-			new_image->shared = 0;
-
-			return new_image;
-		}
-//		static Image<type>* open(std::string file_name)
-//		{
-//			try
-//			{
-//				cimg_library::CImg<type> img(file_name.c_str());
-//				return new Image<type>(&img);
-//			}
-//			catch(cimg_library::CImgException &e)
-//			{
-//				return nullptr;
-//			}
-//		}
-//		void save(std::string file_name)
-//		{
-//			try
-//			{
-//				if(this->getRank() == 2)
-//				{
-//					int width, height, spectrum;
-//
-//					width = this->getDimensions()[0];
-//					height = this->getDimensions()[1];
-//					spectrum = this->getChannels();
-//					cimg_library::CImg<type> img(width, height, 1, spectrum);
-//					std::copy(this->getData(), this->getData()+this->getFlattenedLength(), img.data());
-//					img.save(file_name.c_str());
-//				}
-//				else
-//				{
-//				}
-//			}
-//			catch(cimg_library::CImgException &e)
-//			{
-//			}
-//		}
 
 		/*******************************************************************************************************
 		 * getter and setter
