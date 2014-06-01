@@ -21,8 +21,7 @@ class MultiLabelGraphcut
 		std::shared_ptr<Image<int>> multilabel_graphcut(Image<int> &label_image, Image<int> &input_image, Parameters &input_params);
 
 		private:
-		int verbosity = 0,
-			cycles = -1;
+		int cycles = -1;
 };
 
 struct ForSmoothFn

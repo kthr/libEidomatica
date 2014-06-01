@@ -14,8 +14,6 @@
 #include "alg/multi_label_graphcut.hpp"
 #include "library_link_utilities.hpp"
 #include "revision.hpp"
-#include "templates/image.hpp"
-
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
@@ -45,7 +43,7 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 	//transform and write data to output
 	mint dimensions[input_image->getRank()];
-	std::copy(input_image->getDimensions(), input_image->getDimensions()+input_image->getRank(), dimensions);
+	std::copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
 	std::copy(binary_image->getData(), binary_image->getData()+binary_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
 	MArgument_setMTensor(output,binary_tensor);
@@ -60,7 +58,7 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 	elib::Image<int> *input_image, *input_label_image;
 	std::shared_ptr<elib::Image<int>> label_image;
 	elib::Parameters params;
-	MTensor binary_tensor;
+	MTensor tensor;
 
 //		int debug = 1;
 //		while(debug);
@@ -85,10 +83,10 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 
 	//transform and write data to output
 	mint dimensions[input_image->getRank()];
-	std::copy(input_image->getDimensions(), input_image->getDimensions()+input_image->getRank(), dimensions);
-	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
-	std::copy(label_image->getData(), label_image->getData()+label_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
-	MArgument_setMTensor(output,binary_tensor);
+	std::copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
+	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &tensor);
+	std::copy(label_image->getData(), label_image->getData()+label_image->getFlattenedLength(), libData->MTensor_getIntegerData(tensor));
+	MArgument_setMTensor(output,tensor);
 
 	delete input_image;
 	delete input_label_image;

@@ -41,12 +41,18 @@ find_package(Mathematica)
 if(Boost_FOUND AND ${Mathematica_WolframLibrary_FOUND})
     include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR})
     target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARIES})
+    set_target_properties(Eidomatica PROPERTIES COMPILE_DEFINITIONS "GLM_FORCE_RADIANS")
+endif()
+
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
-#    set(CMAKE_CXX_COMPILER g++-mp-4.8)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O4 -pipe -Wall -std=c++11 -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -Wall -std=c++11 -stdlib=libc++")
     set(CMAKE_CXX_FLAGS_DEBUG "-v -g -O0 -pipe -Wall -std=c++11 -stdlib=libc++")
 endif()
 

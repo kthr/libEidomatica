@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <set>
 
+#include <iostream>
+
 #include "gco/GCoptimization.h"
 #include "glm/glm.hpp"
 #include "utilities/math_functions.hpp"
@@ -33,7 +35,7 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 	std::set<int>::iterator it;
 	std::unordered_map<int,int> label_map;
 	int label, num_pixels, *label_data, *image_data;
-	std::shared_ptr<Image<int>> new_label_image = std::shared_ptr<Image<int>>(new Image<int>(label_image.getRank(), label_image.getDimensions(), label_image.getBitDepth(), label_image.getChannels()));
+	std::shared_ptr<Image<int>> new_label_image = std::shared_ptr<Image<int>>(new Image<int>(label_image.getRank(), *label_image.getDimensions(), label_image.getBitDepth(), label_image.getChannels()));
 
 	if(
 		isnan(num_labels = input_params.getIntegerParameter("NumberLabels")) ||
@@ -71,7 +73,7 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 		for (int i = 0; i < num_pixels; i++ )
 		{
 			label = label_map.find(label_data[i])->second;
-			gc->setDataCost(i,0, (label_dist(0-label))+fabs(float(image_data[i])-c));
+			gc->setDataCost(i,0, (label_dist(label))+fabs(float(image_data[i])-c));
 		}
 		c=c1*(pow(2,bit_depth)-1);
 		//label for appearing objects == 1
@@ -126,7 +128,7 @@ float elib::smoothFn(int p1, int p2, int l1, int l2, void *data)
 {
 	ForSmoothFn fsf = *((ForSmoothFn*) data);
 	if(l1==l2)
-		return fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2));
+		return float(fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
 	else
 	{
 		if((l1==1 && l2>1) || (l1>1 && l2==1))
@@ -135,11 +137,12 @@ float elib::smoothFn(int p1, int p2, int l1, int l2, void *data)
 		}
 		if((l1==0 && l2>1) || (l1>1 && l2==0))
 		{
-			return fsf.lambda*float(exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+			return float(fsf.mu*label_dist(l1-l2) + fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
 		}
 		else
 		{
-			return fsf.lambda*float(fsf.mu*label_dist(l1-l2) + exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+			return float(fsf.mu*label_dist(l1-l2) + fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+//			return GC_INFINITY;
 		}
 	}
 }

@@ -8,6 +8,7 @@
 #ifndef LIBRARY_LINK_HPP_
 #define LIBRARY_LINK_HPP_
 
+#include "templates/image.hpp"
 #include "mathlink.h"
 
 #include <math.h>
