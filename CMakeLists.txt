@@ -60,4 +60,7 @@ if(WIN32)
 endif()
 
 if(UNIX AND NOT APPLE)
+	message("\nEntering configuration for UNIX computers:\n")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -Wall -std=c++11")
+	set(CMAKE_CXX_FLAGS_DEBUG "-v -g -O0 -pipe -Wall -std=c++11")
 endif()
