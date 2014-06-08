@@ -14,11 +14,12 @@
 #include "alg/multi_label_graphcut.hpp"
 #include "library_link_utilities.hpp"
 #include "revision.hpp"
+#include "templates/image.hpp"
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
 	elib::Image<int> *input_image;
-	elib::Image<int> *binary_image;
+	elib::Image<short> *binary_image;
 	elib::Parameters params;
 	MTensor binary_tensor;
 
@@ -30,10 +31,8 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 	params.addParameter("C0", MArgument_getReal(input[2])); // c0
 	params.addParameter("C1", MArgument_getReal(input[3])); // c1
-	params.addParameter("Lambda1", MArgument_getReal(input[4])); // lambda1
-	params.addParameter("Lambda2", MArgument_getReal(input[5])); // lambda2
-	params.addParameter("Beta", MArgument_getReal(input[6])); // beta
-
+	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda1
+       
 	//compute cut
 	binary_image = graphcut(*input_image, params);
 	if(binary_image == nullptr)
@@ -43,7 +42,7 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 	//transform and write data to output
 	mint dimensions[input_image->getRank()];
-	std::copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
+	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
 	std::copy(binary_image->getData(), binary_image->getData()+binary_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
 	MArgument_setMTensor(output,binary_tensor);
@@ -55,7 +54,8 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
-	elib::Image<int> *input_image, *input_label_image;
+    elib::Image<int>    *input_image,
+                        *input_label_image;
 	std::shared_ptr<elib::Image<int>> label_image;
 	elib::Parameters params;
 	MTensor tensor;
@@ -66,7 +66,7 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 	//get input
 	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
 	input_label_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[2]), MArgument_getInteger(input[3]), 1);
-
+    
 	params.addParameter("NumberLabels", int(MArgument_getInteger(input[4]))); // number of labels
 	params.addParameter("C0", MArgument_getReal(input[5])); // c0
 	params.addParameter("C1", MArgument_getReal(input[6])); // c1
@@ -83,7 +83,7 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 
 	//transform and write data to output
 	mint dimensions[input_image->getRank()];
-	std::copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
+	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &tensor);
 	std::copy(label_image->getData(), label_image->getData()+label_image->getFlattenedLength(), libData->MTensor_getIntegerData(tensor));
 	MArgument_setMTensor(output,tensor);

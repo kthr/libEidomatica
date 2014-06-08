@@ -55,6 +55,8 @@
 #define ARC_BLOCK_SIZE 1024
 #define NODEPTR_BLOCK_SIZE 128
 
+namespace graphcut{
+
 class Graph
 {
 public:
@@ -66,9 +68,9 @@ public:
 
 	/* Type of edge weights.
 	   Can be changed to char, int, float, double, ... */
-	typedef int captype;
+	typedef float captype;
 	/* Type of total flow */
-	typedef long flowtype;
+	typedef double flowtype;
 
 	typedef void * node_id;
 
@@ -176,5 +178,7 @@ private:
 	void process_source_orphan(node *i);
 	void process_sink_orphan(node *i);
 };
+
+} /* end namespace graphcut */
 
 #endif

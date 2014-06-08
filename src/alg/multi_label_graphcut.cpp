@@ -29,12 +29,12 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 	float 	c0 = .1,
 			c1 = .9,
 			lambda = 1.,
-			mu = 1.;
-	int c;
-	std::set<int> labels;
+			mu = 1.,
+			c;
+    std::set<int> labels;
 	std::set<int>::iterator it;
 	std::unordered_map<int,int> label_map;
-	int label, num_pixels, *label_data, *image_data;
+	int label, num_pixels;
 	std::shared_ptr<Image<int>> new_label_image = std::shared_ptr<Image<int>>(new Image<int>(label_image.getRank(), *label_image.getDimensions(), label_image.getBitDepth(), label_image.getChannels()));
 
 	if(
@@ -50,8 +50,8 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 	width = input_image.getWidth();
 	height = input_image.getHeight();
 	bit_depth = input_image.getBitDepth();
-	label_data = label_image.getData();
-	image_data = input_image.getData();
+	int *label_data = label_image.getData(),
+        *image_data = input_image.getData();
 
 	labels.insert(label_image.getData(), label_image.getData()+label_image.getFlattenedLength());
 	labels.insert(1); //inserts label 1
@@ -73,10 +73,10 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 		for (int i = 0; i < num_pixels; i++ )
 		{
 			label = label_map.find(label_data[i])->second;
-			gc->setDataCost(i,0, (label_dist(label))+fabs(float(image_data[i])-c));
+			gc->setDataCost(i,0, (label_dist(label))+fabsf(image_data[i])-c);
 		}
-		c=c1*(pow(2,bit_depth)-1);
 		//label for appearing objects == 1
+		c=c1*(pow(2,bit_depth)-1);
 		for (int i = 0; i < num_pixels; i++ )
 		{
 			label = label_map.find(label_data[i])->second;
@@ -86,7 +86,7 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 			}
 			else
 			{
-				gc->setDataCost(i,1, fabs(image_data[i]-c));
+				gc->setDataCost(i,1, fabsf(image_data[i]-c));
 			}
 		}
 		//other labels
@@ -95,7 +95,7 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 			for (int i = 0; i < num_pixels; i++ )
 			{
 				label = label_map.find(label_data[i])->second;
-				gc->setDataCost(i,l, (label_dist(l-label)+fabs(image_data[i]-c)));
+				gc->setDataCost(i,l, (label_dist(l-label)+fabsf(image_data[i]-c)));
 			}
 		}
 
@@ -106,7 +106,7 @@ std::shared_ptr<Image<int>> MultiLabelGraphcut::multilabel_graphcut(Image<int> &
 //						gc->setSmoothCost(l1,l2,l1==l2 ? 0 : lambda);
 //					}
 		ForSmoothFn data;
-		data.image = input_image.getData();
+		data.image = image_data;
 		data.lambda = lambda;
 		data.mu = mu;
 		gc->setSmoothCost(&smoothFn, &data);
@@ -128,7 +128,7 @@ float elib::smoothFn(int p1, int p2, int l1, int l2, void *data)
 {
 	ForSmoothFn fsf = *((ForSmoothFn*) data);
 	if(l1==l2)
-		return float(fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+		return fsf.lambda+exp(-powf(fsf.image[p1]-fsf.image[p2],2));
 	else
 	{
 		if((l1==1 && l2>1) || (l1>1 && l2==1))
@@ -137,20 +137,20 @@ float elib::smoothFn(int p1, int p2, int l1, int l2, void *data)
 		}
 		if((l1==0 && l2>1) || (l1>1 && l2==0))
 		{
-			return float(fsf.mu*label_dist(l1-l2) + fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+			return fsf.lambda+(label_dist(l1-l2) + exp(-powf(fsf.image[p1]-fsf.image[p2],2)));
 		}
 		else
 		{
-			return float(fsf.mu*label_dist(l1-l2) + fsf.lambda*exp(-pow(fsf.image[p1]-fsf.image[p2],2)));
+			return fsf.lambda+(fsf.mu*label_dist(l1-l2) + exp(-powf(fsf.image[p1]-fsf.image[p2],2)));
 //			return GC_INFINITY;
 		}
 	}
 }
 
-inline int elib::label_dist(int value)
+inline float elib::label_dist(int value)
 {
 	if(value==0)
-		return 0;
+		return 0.;
 	else
-		return 1;
+		return 1.;
 }

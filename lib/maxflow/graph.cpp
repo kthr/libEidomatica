@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include "graph.h"
 
+namespace graphcut{
+
 Graph::Graph(void (*err_function)(char *))
 {
 	error_function = err_function;
@@ -72,9 +74,11 @@ void Graph::set_tweights(node_id i, captype cap_source, captype cap_sink)
 
 void Graph::add_tweights(node_id i, captype cap_source, captype cap_sink)
 {
-	register captype delta = ((node*)i) -> tr_cap;
+	captype delta = ((node*)i) -> tr_cap;
 	if (delta > 0) cap_source += delta;
 	else           cap_sink   -= delta;
 	flow += (cap_source < cap_sink) ? cap_source : cap_sink;
 	((node*)i) -> tr_cap = cap_source - cap_sink;
 }
+
+} /* end namespace graphcut */

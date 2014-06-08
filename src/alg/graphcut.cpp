@@ -7,20 +7,21 @@
 
 #include "graphcut.hpp"
 
+#include <math.h>
+
 #include "maxflow/energy.h"
 #include "maxflow/graph.h"
 #include "utilities/math_functions.hpp"
 
 namespace elib{
 
-#define GC_INFINITY 300000
+#define GC_INFINITY 300000.
 
-Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
+Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 {
-	Image<int> *binary_image = new Image<int>(input_image.getRank(), *input_image.getDimensions(), input_image.getBitDepth(), input_image.getChannels());
-	int nodeCount;
-	int max_intensity, bg, fg, value;
-	int x, y, z;
+	using graphcut::Energy;
+
+	Image<short> *binary_image = new Image<short>(input_image.getRank(), *input_image.getDimensions(), input_image.getBitDepth(), input_image.getChannels());
 	int *nh,
 		nh_length,
 		nh2d[24] = {-1,0,0,-1,-1,0,0,-1,0,1,-1,0,1,0,0,1,1,0,0,1,0,-1,1,0}, // 8-neighborhood indices
@@ -37,33 +38,31 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 	}
 	int width = input_image.getWidth(),
 		height = input_image.getHeight(),
-		depth = input_image.getDepth(),
-		bit_depth = input_image.getBitDepth();
-
-	double c0, c1, lambda1, lambda2, beta;
-
+        depth = input_image.getDepth(),
+        bitDepth = input_image.getBitDepth();
+    
+	double c0, c1, lambda;
 	if(
 		elib::isnan(c0 = parameters.getDoubleParameter("C0")) ||
 		elib::isnan(c1 = parameters.getDoubleParameter("C1")) ||
-		elib::isnan(lambda1 = parameters.getDoubleParameter("Lambda1")) ||
-		elib::isnan(lambda2 = parameters.getDoubleParameter("Lambda2")) ||
-		elib::isnan(beta = parameters.getDoubleParameter("Beta"))
+        elib::isnan(lambda = parameters.getDoubleParameter("Lambda"))
 	)
 	{
 		return nullptr;
 	}
 
 	int *input_image_data = input_image.getData();
-	int *binary_image_data = binary_image->getData();
-
-	max_intensity = pow(2,bit_depth)-1;
-	bg = c0*max_intensity;
-	fg = c1*max_intensity;
+	short *binary_image_data = binary_image->getData();
 
 	/****** Create the Energy *************************/
 	Energy::Var *varx = new Energy::Var[width*height*depth];
 	Energy *energy = new Energy();
 
+    int nodeCount;
+    float value;
+    int maxIntensity = pow(2,bitDepth)-1;
+    float   bg = c0*maxIntensity,
+            fg = c1*maxIntensity;
 	/****** Build Unary Term *************************/
 	for(int k=0; k<depth; ++k )
 	{
@@ -78,12 +77,14 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 
 				// add likelihood
 				value = input_image_data[nodeCount];
-				energy->add_term1(varx[nodeCount], abs(value - bg), abs(value - fg));
+				energy->add_term1(varx[nodeCount], fabsf(value - bg), fabsf(value - fg));
 			}
 		}
 	}
 
 	/******* Build pairwise terms ********************/
+	int other;
+    int x, y, z;
 	for(int k=0; k<depth; ++k)
 	{
 		for (int j=0; j<height; ++j)
@@ -97,12 +98,11 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 					y = j + nh[l+1];
 					z = k + nh[l+2];
 					//if not outside of image
+					other = x + y*width + z*width*height;
 					if (!(x<0 || x>=width || y<0 || y>=height || z<0 || z>=depth))
 					{
-						value = lambda1
-								+ lambda2
-										* exp(- beta * pow(input_image_data[nodeCount] - input_image_data[x + y*width + z*width*height], 2));
-						energy->add_term2(varx[nodeCount], varx[x + y*width + z*width*height], 0., value, value, 0.);
+						value = lambda+expf(-powf(float(input_image_data[nodeCount] - input_image_data[other]),2));
+						energy->add_term2(varx[nodeCount], varx[other], 0., value, value, 0.);
 					}
 				}
 			}
@@ -137,11 +137,12 @@ Image<int>* graphcut(Image<int> &input_image, Parameters &parameters)
 	delete energy;
 
 	return binary_image;
-
 }
 
 void graphcutSphere(int* binary, int nVertices, double *vertices, int *prior, int nNeighbors, int *neighbours, int bitDepth, int *intensities, double c0, double c1, double lambda1, double lambda2)
 {
+	using graphcut::Energy;
+
 	double maxIntensity, value, fg, bg;
 	int nb;
 

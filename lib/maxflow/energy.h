@@ -76,6 +76,8 @@
 #include <assert.h>
 #include "graph.h"
 
+namespace graphcut{
+
 class Energy : Graph
 {
 public:
@@ -250,9 +252,9 @@ inline void Energy::add_term3(Var x, Var y, Var z,
                               Value E100, Value E101,
                               Value E110, Value E111)
 {
-	register Value pi = (E000 + E011 + E101 + E110) - (E100 + E010 + E001 + E111);
-	register Value delta;
-	register Var u;
+	Value pi = (E000 + E011 + E101 + E110) - (E100 + E010 + E001 + E111);
+	Value delta;
+	Var u;
 
 	if (pi >= 0)
 	{
@@ -314,5 +316,7 @@ inline void Energy::add_term3(Var x, Var y, Var z,
 inline Energy::TotalValue Energy::minimize() { return Econst + maxflow(); }
 
 inline int Energy::get_var(Var x) { return (int)what_segment(x); }
+
+} /* end namespace graphcut */
 
 #endif

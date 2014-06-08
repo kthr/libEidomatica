@@ -44,6 +44,8 @@
 	(and the second queue becomes empty).
 */
 
+namespace graphcut{
+
 inline void Graph::set_active(node *i)
 {
 	if (!i->next)
@@ -511,4 +513,6 @@ Graph::termtype Graph::what_segment(node_id i)
 	if (((node*)i)->parent && !((node*)i)->is_sink) return SOURCE;
 	return SINK;
 }
+
+} /* end namespace graphcut */
 
