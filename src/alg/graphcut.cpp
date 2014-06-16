@@ -139,6 +139,129 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 	return binary_image;
 }
 
+void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_image, Parameters &parameters)
+{
+	using graphcut::Energy;
+
+	const Tensor<float> *background, *foreground;
+	double lambda;
+	if(
+		(background=parameters.getFloatTensorParameter("C0")) == nullptr ||
+		(foreground=parameters.getFloatTensorParameter("C1")) == nullptr ||
+		elib::isnan(lambda=parameters.getDoubleParameter("Lambda"))
+	)
+	{
+		binary_image = nullptr;
+		return;
+	}
+	int width = input_image.getWidth(),
+		height = input_image.getHeight(),
+		depth = input_image.getDepth(),
+		bit_depth = input_image.getBitDepth();
+
+	if(background->getFlattenedLength() != (pow(2,bit_depth)) || foreground->getFlattenedLength() != (pow(2,bit_depth)))
+	{
+		binary_image = nullptr;
+		return;
+	}
+
+	int *input_image_data = input_image.getData();
+	binary_image = std::unique_ptr<Image<short>>(new Image<short>(input_image.getRank(), *input_image.getDimensions(), 8, 1));
+	short *binary_image_data = binary_image->getData();
+
+	/****** Create the Energy *************************/
+	Energy::Var *varx = new Energy::Var[width*height*depth];
+	Energy *energy = new Energy();
+
+	int nodeCount;
+	int value;
+	/****** Build Unary Term *************************/
+	for(int k=0; k<depth; ++k )
+	{
+		for (int j=0; j < height; ++j)
+		{
+			for (int i = 0; i < width; ++i)
+			{
+				nodeCount = i + j*width + k*width*height;
+
+				// add node
+				varx[nodeCount] = energy->add_variable();
+
+				// add likelihood
+				value = input_image_data[nodeCount];
+				energy->add_term1(varx[nodeCount], 1.-background->get(value), 1.-foreground->get(value));
+			}
+		}
+	}
+
+	int *nh,
+		nh_length,
+		nh2d[24] = {-1,0,0,-1,-1,0,0,-1,0,1,-1,0,1,0,0,1,1,0,0,1,0,-1,1,0}, // 8-neighborhood indices
+		nh3d[42] = {-1,0,0,0,0,-1,1,0,0,0,0,1,0,1,0,0,-1,0,-1,1,-1,1,1,-1,-1,1,1,1,1,1,-1,-1,-1,1,-1,-1,-1,-1,1,1,-1,1};
+	if(input_image.getRank()==2)
+	{
+		nh=nh2d;
+		nh_length=24;
+	}
+	else
+	{
+		nh=nh3d;
+		nh_length=42;
+	}
+	/******* Build pairwise terms ********************/
+	int other;
+	int x, y, z;
+	for(int k=0; k<depth; ++k)
+	{
+		for (int j=0; j<height; ++j)
+		{
+			for (int i=0; i<width; ++i)
+			{
+				nodeCount = i + j*width + k*width*height;
+				for(int l = 0; l < nh_length; l+=3)
+				{
+					x = i + nh[l];
+					y = j + nh[l+1];
+					z = k + nh[l+2];
+					//if not outside of image
+					other = x + y*width + z*width*height;
+					if (!(x<0 || x>=width || y<0 || y>=height || z<0 || z>=depth))
+					{
+						value = lambda+expf(-powf(float(input_image_data[nodeCount] - input_image_data[other]),2));
+						energy->add_term2(varx[nodeCount], varx[other], 0., value, value, 0.);
+					}
+				}
+			}
+		}
+	}
+
+	/******* Minimize energy ********************/
+	energy->minimize();
+
+	/******* Show binary image and clean up ********************/
+	for(int k=0; k<depth; ++k)
+	{
+		for (int j = 0; j < height; ++j)
+		{
+			for (int i = 0; i < width; ++i)
+			{
+				nodeCount = i + j * width + k*width*height;
+				if (energy->get_var(varx[nodeCount]))
+				{
+					binary_image_data[nodeCount] = 1;
+				}
+				else
+				{
+					binary_image_data[nodeCount] = 0;
+				}
+			}
+
+		}
+	}
+
+	delete[] varx;
+	delete energy;
+}
 void graphcutSphere(int* binary, int nVertices, double *vertices, int *prior, int nNeighbors, int *neighbours, int bitDepth, int *intensities, double c0, double c1, double lambda1, double lambda2)
 {
 	using graphcut::Energy;

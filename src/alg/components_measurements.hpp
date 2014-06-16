@@ -38,7 +38,7 @@ class ComponentsMeasurements
 		{
 			this->label_image = label_image;
 			labels = new std::set<int>();
-			masks = new MaskList<Point>();
+			masks = new MaskList<Point>(label_image.getRank(), *label_image.getDimensions());
 			init();
 		}
 		virtual ~ComponentsMeasurements()
@@ -94,7 +94,7 @@ class ComponentsMeasurements
 				height = label_image.getHeight(),
 				depth = label_image.getDepth(),
 				label;
-			Mask<Point>* mask_ptr;
+			std::shared_ptr<Mask<Point>> shared_mask_ptr;
 			for(int k=0; k<depth; ++k)
 			{
 				for (int j = 0; j < height; ++j)
@@ -104,15 +104,15 @@ class ComponentsMeasurements
 						pixel = k*width*height + j*width + i;
 						if ((label=label_data[pixel]) > 0)
 						{
-							if((mask_ptr=masks->getMask(label)) == nullptr)
+							if((shared_mask_ptr=masks->getMask(label)) == nullptr)
 							{
 								labels->insert(label);
-								mask_ptr = masks->addMask(label);
-								mask_ptr->addPoint(Point(i, j, k));
+								masks->addMask(shared_mask_ptr, label);
+								shared_mask_ptr->addPoint(Point(i, j, k));
 							}
 							else
 							{
-								mask_ptr->addPoint(Point(i, j, k));
+								shared_mask_ptr->addPoint(Point(i, j, k));
 							}
 						}
 

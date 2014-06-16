@@ -36,6 +36,12 @@ bool Parameters::addParameter(std::string identifier, elib::Tensor<int> &value)
 	return res.second;
 }
 
+bool Parameters::addParameter(std::string identifier, elib::Tensor<float> &value)
+{
+	auto res = float_tensor_params.insert(std::pair<std::string, elib::Tensor<float> >(identifier, value));
+	return res.second;
+}
+
 int Parameters::getIntegerParameter(std::string identifier) const
 {
 	auto res = integer_params.find(identifier);
@@ -75,5 +81,17 @@ const elib::Tensor<int>* Parameters::getIntegerTensorParameter(std::string ident
 	}
 }
 
+const elib::Tensor<float>* Parameters::getFloatTensorParameter(std::string identifier) const
+{
+	auto res = float_tensor_params.find(identifier);
+	if(res == float_tensor_params.end())
+	{
+		return nullptr;
+	}
+	else
+	{
+		return &(res->second);
+	}
+}
 } /* end namespace elib */
 

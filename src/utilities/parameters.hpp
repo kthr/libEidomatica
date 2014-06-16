@@ -25,15 +25,18 @@ class Parameters
 		bool addParameter(std::string identifier, int value);
 		bool addParameter(std::string identifier, double value);
 		bool addParameter(std::string identifier, elib::Tensor<int> &tensor);
+		bool addParameter(std::string identifier, elib::Tensor<float> &tensor);
 		int getIntegerParameter(std::string identifier) const;
 		double getDoubleParameter(std::string identifier) const;
 		const elib::Tensor<int>* getIntegerTensorParameter(std::string identifier) const;
+		const elib::Tensor<float>* getFloatTensorParameter(std::string identifier) const;
 
 
 	private:
 		std::unordered_map<std::string, int> integer_params;
 		std::unordered_map<std::string, double> double_params;
 		std::unordered_map<std::string, elib::Tensor<int> > integer_tensor_params;
+		std::unordered_map<std::string, elib::Tensor<float> > float_tensor_params;
 };
 
 } /* namespace elib */

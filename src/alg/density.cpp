@@ -41,7 +41,7 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 	{
 		return nullptr;
 	}
-	Tensor<double> *density = new Tensor<double>(rank, const_cast<Tensor<int>* >(dimensions)->getData());
+	Tensor<double> *density = new Tensor<double>(rank, dimensions->getData());
 	double *tensor_data = density->getData();
 	int *dims = const_cast<Tensor<int>* >(dimensions)->getData();
 	int *original_dims = const_cast<Tensor<int>* >(original_dimensions)->getData();

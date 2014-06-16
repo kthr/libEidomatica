@@ -23,7 +23,9 @@ extern "C"
 #endif
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
+DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
+DLLEXPORT int llAdaptiveMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 

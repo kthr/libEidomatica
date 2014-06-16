@@ -23,22 +23,22 @@ template <typename T>
 class LibraryLinkUtilities
 {
 	public:
-		static Tensor<T>* llGetIntegerTensor(WolframLibraryData libData, MTensor& tensor)
+		static std::shared_ptr<Tensor<T>> llGetIntegerTensor(WolframLibraryData libData, MTensor& tensor)
 		{
 			int rank = libData->MTensor_getRank(tensor);
-			int dimensions[rank];
-			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions);
-			Tensor<T> *new_tensor = new Tensor<T>(rank , dimensions);
+			std::vector<int> dimensions(rank);
+			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions.begin());
+			std::shared_ptr<Tensor<T>> new_tensor = std::shared_ptr<Tensor<T>>(new Tensor<T>(rank , dimensions));
 			std::copy(libData->MTensor_getIntegerData(tensor), libData->MTensor_getIntegerData(tensor)+libData->MTensor_getFlattenedLength(tensor), new_tensor->getData());
 			return new_tensor;
 		}
 
-		static Tensor<T>* llGetRealTensor(WolframLibraryData libData, MTensor& tensor)
+		static std::shared_ptr<Tensor<T>> llGetRealTensor(WolframLibraryData libData, MTensor& tensor)
 		{
 			int rank = libData->MTensor_getRank(tensor);
-			int dimensions[rank];
-			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions);
-			Tensor<T> *new_tensor = new Tensor<T>(rank , dimensions);
+			std::vector<int> dimensions(rank);
+			std::copy(libData->MTensor_getDimensions(tensor),libData->MTensor_getDimensions(tensor)+rank, dimensions.begin());
+			std::shared_ptr<Tensor<T>> new_tensor = std::shared_ptr<Tensor<T>>(new Tensor<T>(rank , dimensions));
 			std::copy(libData->MTensor_getRealData(tensor), libData->MTensor_getRealData(tensor)+libData->MTensor_getFlattenedLength(tensor), new_tensor->getData());
 			return new_tensor;
 		}

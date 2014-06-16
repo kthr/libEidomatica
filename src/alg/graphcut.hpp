@@ -16,6 +16,7 @@
 namespace elib{
 
 Image<short>* graphcut(Image<int> &input_image, Parameters &params);
+void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_image, Parameters &parameters);
 void graphcutSphere(int* binary, int nVertices, double *vertices, int *prior, int nNeighbors, int *neighbours, int bitDepth, int *intensities, double c0, double c1, double lambda1, double lambda2);
 double calculateEnergy(int *image, int* binary, int width, int height, int bitDepth, double c0, double c1, double lambda1, double lambda2, double beta);
 double calculateError(int *binaryLabel, int *groundTruthLabel, int width, int height);

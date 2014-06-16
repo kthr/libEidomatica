@@ -8,6 +8,8 @@
 #ifndef LABELING_HPP_
 #define LABELING_HPP_
 
+#include <vector>
+
 #include "templates/image.hpp"
 #include "utilities/parameters.hpp"
 
@@ -19,9 +21,11 @@ class MultiLabelGraphcut
 		MultiLabelGraphcut(){}
 		~MultiLabelGraphcut(){}
 		std::shared_ptr<Image<int>> multilabel_graphcut(Image<int> &label_image, Image<int> &input_image, Parameters &input_params);
+		std::shared_ptr<Image<int>> adaptive_multilabel_graphcut(Image<int> &label_image, Image<int> &input_image, Parameters &input_params);
 
-		private:
+	private:
 		int cycles = -1;
+		void calculateIntensityDistributions(std::vector<float> &c0, std::vector<float> &c1, Image<int> &label_image, Image<int> &input_image);
 };
 
 struct ForSmoothFn

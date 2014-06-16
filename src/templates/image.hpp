@@ -171,6 +171,17 @@ class Image
 				*this = tmp;
 			}
 		}
+		std::vector<type> pick(const std::vector<glm::ivec3> &points)
+		{
+			std::vector<type> intensities(points.size());
+			int width = this->getWidth(),
+				height = this->getHeight();
+			for(auto i : points)
+			{
+				intensities.push_back(data[i.x + i.y*width + i.z*width*height]);
+			}
+			return intensities;
+		}
 		std::shared_ptr<Image<type>> imageTake(BoundingBox<glm::ivec2> box) const
 		{
 			glm::ivec2 	upperLeft = box.getUpperLeft(),
