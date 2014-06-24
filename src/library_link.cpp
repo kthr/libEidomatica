@@ -32,7 +32,8 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 
 	params.addParameter("C0", MArgument_getReal(input[2])); // c0
 	params.addParameter("C1", MArgument_getReal(input[3])); // c1
-	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda1
+	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda
+	params.addParameter("Sigma", MArgument_getReal(input[5])); // lambda1
        
 	//compute cut
 	binary_image = graphcut(*input_image, params);

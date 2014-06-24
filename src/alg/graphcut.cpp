@@ -41,11 +41,12 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
         depth = input_image.getDepth(),
         bitDepth = input_image.getBitDepth();
     
-	double c0, c1, lambda;
+	double c0, c1, lambda, sigma;
 	if(
 		elib::isnan(c0 = parameters.getDoubleParameter("C0")) ||
 		elib::isnan(c1 = parameters.getDoubleParameter("C1")) ||
-        elib::isnan(lambda = parameters.getDoubleParameter("Lambda"))
+        elib::isnan(lambda = parameters.getDoubleParameter("Lambda")) ||
+        elib::isnan(sigma = parameters.getDoubleParameter("Sigma"))
 	)
 	{
 		return nullptr;
@@ -60,7 +61,7 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 
     int nodeCount;
     float value;
-    int maxIntensity = pow(2,bitDepth)-1;
+    float maxIntensity = powf(2.,bitDepth)-1.;
     float   bg = c0*maxIntensity,
             fg = c1*maxIntensity;
 	/****** Build Unary Term *************************/
@@ -77,7 +78,7 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 
 				// add likelihood
 				value = input_image_data[nodeCount];
-				energy->add_term1(varx[nodeCount], fabsf(value - bg), fabsf(value - fg));
+				energy->add_term1(varx[nodeCount], fabsf(value - bg)/maxIntensity, fabsf(value - fg)/maxIntensity);
 			}
 		}
 	}
@@ -101,7 +102,7 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 					other = x + y*width + z*width*height;
 					if (!(x<0 || x>=width || y<0 || y>=height || z<0 || z>=depth))
 					{
-						value = lambda+expf(-powf(float(input_image_data[nodeCount] - input_image_data[other]),2));
+						value = lambda*expf(-powf(float(input_image_data[nodeCount] - input_image_data[other])/maxIntensity,2)/sigma);
 						energy->add_term2(varx[nodeCount], varx[other], 0., value, value, 0.);
 					}
 				}
