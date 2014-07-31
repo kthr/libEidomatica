@@ -41,11 +41,11 @@ void HDF5Reader::readGroupNames(std::vector<std::string> &names, std::string roo
 		H5O object = H5O(file, root);
 		if(depth==0)
 		{
-			if(H5Ovisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_group_name, names.data()) < 0)
+			if(H5Ovisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_group_name, &names) < 0)
 			{
 				throw H5Exception("Failed to visit ");
 			}
-			if(H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, names.data()) < 0)
+			if(H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, &names) < 0)
 			{
 				throw H5Exception("Failed to visit ");
 			}

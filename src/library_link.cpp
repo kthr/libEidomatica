@@ -233,16 +233,40 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 	return LIBRARY_NO_ERROR;
 }
 
-DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 {
-	char *file_name = MArgument_getUTF8String(input[0]);
-	mint type = MArgument_getInteger(input[1]);
-	char *root = MArgument_getUTF8String(input[2]);
-	mint depth = MArgument_getInteger(input[3]);
+	const char *file_name, *root;
+    int type, depth;
+    long length;
+    
+//    int debug = 1;
+//    while (debug);
 
-	int debug = 1;
-	while (debug);
-
+    if(!MLCheckFunction(mlp, "List", &length))
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    if(length!=4)
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    if(!MLGetString(mlp, &file_name))
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    if(!MLGetInteger(mlp, &type))
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    if(!MLGetString(mlp, &root))
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    if(!MLGetInteger(mlp, &depth))
+    {
+        return LIBRARY_FUNCTION_ERROR;
+    }
+    
 	try
 	{
 		elib::HDF5Reader reader = elib::HDF5Reader(libData, std::string(file_name));
@@ -251,33 +275,30 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* in
 			case 0: /* read groups */
 				vector<string> names;
 				reader.readGroupNames(names, std::string(root), depth);
-				MLINK loopback = libData->getMathLink(libData);
-				MLPutFunction(loopback, "List", names.size());
-				for (string i : names)
-				{
-					MLPutString(loopback, i.c_str());
-				}
-				MLEndPacket(loopback);
-				MLClose(loopback);
+                MLPutFunction(mlp, "List", names.size());
+                for (string i : names)
+                {
+                    MLPutString(mlp, i.c_str());
+                }
+                MLEndPacket(mlp);
 				break;
 		}
-	} catch (elib::H5Exception &e)
+	}
+	catch (elib::H5Exception &e)
 	{
 		char err_msg[500];
 		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.what(), "]");
-		MLINK loopback = libData->getMathLink(libData);
-		MLNewPacket(loopback);
-		MLPutFunction(loopback, "EvaluatePacket", 1L);
-		MLPutFunction(loopback, "ToExpression", 1L);
-		MLPutString(loopback, err_msg);
-		MLNextPacket(loopback);
-		MLNewPacket(loopback);
-		MLPutSymbol(loopback, "$Failed");
-		MLClose(loopback);
-	}
+		MLNewPacket(mlp);
+		MLPutFunction(mlp, "EvaluatePacket", 1L);
+		MLPutFunction(mlp, "ToExpression", 1L);
+		MLPutString(mlp, err_msg);
+		MLNextPacket(mlp);
+		MLNewPacket(mlp);
+		MLPutSymbol(mlp, "$Failed");
+    }
 
-	libData->UTF8String_disown(file_name);
-	libData->UTF8String_disown(root);
+    MLReleaseString(mlp, file_name);
+	MLReleaseString(mlp, root);
 	return LIBRARY_NO_ERROR;
 }
 
