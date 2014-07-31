@@ -12,10 +12,14 @@
 #include "alg/density.hpp"
 #include "alg/graphcut.hpp"
 #include "alg/multi_label_graphcut.hpp"
+#include "io/hdf5_reader.hpp"
+#include "io/hdf5_wrapper.hpp"
 #include "library_link_utilities.hpp"
 #include "revision.hpp"
 #include "templates/image.hpp"
 #include "templates/tensor.hpp"
+
+using namespace std;
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
@@ -28,16 +32,17 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 //	while(debug);
 
 	//get input
-	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
+	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]),
+			MArgument_getInteger(input[1]), 1);
 
 	params.addParameter("C0", MArgument_getReal(input[2])); // c0
 	params.addParameter("C1", MArgument_getReal(input[3])); // c1
 	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda
-	params.addParameter("Sigma", MArgument_getReal(input[5])); // lambda1
-       
+	params.addParameter("Sigma", MArgument_getReal(input[5])); // sigma
+
 	//compute cut
 	binary_image = graphcut(*input_image, params);
-	if(binary_image == nullptr)
+	if (binary_image == nullptr)
 	{
 		return LIBRARY_FUNCTION_ERROR;
 	}
@@ -46,8 +51,9 @@ DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* inpu
 	mint dimensions[input_image->getRank()];
 	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
-	std::copy(binary_image->getData(), binary_image->getData()+binary_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
-	MArgument_setMTensor(output,binary_tensor);
+	std::copy(binary_image->getData(), binary_image->getData() + binary_image->getFlattenedLength(),
+			libData->MTensor_getIntegerData(binary_tensor));
+	MArgument_setMTensor(output, binary_tensor);
 
 	delete input_image;
 	delete binary_image;
@@ -69,17 +75,21 @@ DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MAr
 //	while(debug);
 
 	//get input
-	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
+	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]),
+			MArgument_getInteger(input[1]), 1);
 
-	std::shared_ptr<Tensor<float>> c0 = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData,  MArgument_getMTensor(input[2]));
-	std::shared_ptr<Tensor<float>> c1 = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData,  MArgument_getMTensor(input[3]));
+	std::shared_ptr<Tensor<float>> c0 = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData,
+			MArgument_getMTensor(input[2]));
+	std::shared_ptr<Tensor<float>> c1 = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData,
+			MArgument_getMTensor(input[3]));
 	params.addParameter("C0", *c0); // c0
 	params.addParameter("C1", *c1); // c1
-	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda1
+	params.addParameter("Lambda", MArgument_getReal(input[4])); // lambda
+	params.addParameter("Sigma", MArgument_getReal(input[4])); // sigma
 
 	//compute cut
 	graphcut(binary_image, *input_image, params);
-	if(binary_image == nullptr)
+	if (binary_image == nullptr)
 	{
 		return LIBRARY_FUNCTION_ERROR;
 	}
@@ -88,8 +98,9 @@ DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MAr
 	mint dimensions[input_image->getRank()];
 	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &binary_tensor);
-	std::copy(binary_image->getData(), binary_image->getData()+binary_image->getFlattenedLength(), libData->MTensor_getIntegerData(binary_tensor));
-	MArgument_setMTensor(output,binary_tensor);
+	std::copy(binary_image->getData(), binary_image->getData() + binary_image->getFlattenedLength(),
+			libData->MTensor_getIntegerData(binary_tensor));
+	MArgument_setMTensor(output, binary_tensor);
 
 	delete input_image;
 	return LIBRARY_NO_ERROR;
@@ -97,8 +108,7 @@ DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MAr
 
 DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
-    elib::Image<int>    *input_image,
-                        *input_label_image;
+	elib::Image<int> *input_image, *input_label_image;
 	std::shared_ptr<elib::Image<int>> label_image;
 	elib::Parameters params;
 	MTensor tensor;
@@ -107,19 +117,22 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 //		while(debug);
 
 	//get input
-	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
-	input_label_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[2]), MArgument_getInteger(input[3]), 1);
-    
+	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]),
+			MArgument_getInteger(input[1]), 1);
+	input_label_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[2]),
+			MArgument_getInteger(input[3]), 1);
+
 	params.addParameter("NumberLabels", int(MArgument_getInteger(input[4]))); // number of labels
 	params.addParameter("C0", MArgument_getReal(input[5])); // c0
 	params.addParameter("C1", MArgument_getReal(input[6])); // c1
 	params.addParameter("Lambda", MArgument_getReal(input[7])); // lambda
-	params.addParameter("Mu", MArgument_getReal(input[8])); // mu
+	params.addParameter("Sigma", MArgument_getReal(input[8])); // sigma
+	params.addParameter("Mu", MArgument_getReal(input[9])); // mu
 
 	//compute cut
 	elib::MultiLabelGraphcut mlgc;
 	label_image = mlgc.multilabel_graphcut(*input_label_image, *input_image, params);
-	if(label_image == nullptr)
+	if (label_image == nullptr)
 	{
 		return LIBRARY_FUNCTION_ERROR;
 	}
@@ -128,8 +141,9 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 	mint dimensions[input_image->getRank()];
 	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &tensor);
-	std::copy(label_image->getData(), label_image->getData()+label_image->getFlattenedLength(), libData->MTensor_getIntegerData(tensor));
-	MArgument_setMTensor(output,tensor);
+	std::copy(label_image->getData(), label_image->getData() + label_image->getFlattenedLength(),
+			libData->MTensor_getIntegerData(tensor));
+	MArgument_setMTensor(output, tensor);
 
 	delete input_image;
 	delete input_label_image;
@@ -138,8 +152,7 @@ DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgu
 
 DLLEXPORT int llAdaptiveMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
-    elib::Image<int>    *input_image,
-                        *input_label_image;
+	elib::Image<int> *input_image, *input_label_image;
 	std::shared_ptr<elib::Image<int>> label_image;
 	elib::Parameters params;
 	MTensor tensor;
@@ -148,17 +161,20 @@ DLLEXPORT int llAdaptiveMultiLabelGraphcut(WolframLibraryData libData, mint narg
 //		while(debug);
 
 	//get input
-	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]), MArgument_getInteger(input[1]), 1);
-	input_label_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[2]), MArgument_getInteger(input[3]), 1);
+	input_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[0]),
+			MArgument_getInteger(input[1]), 1);
+	input_label_image = elib::LibraryLinkUtilities<int>::llGetIntegerImage(libData, MArgument_getMTensor(input[2]),
+			MArgument_getInteger(input[3]), 1);
 
-    params.addParameter("NumberLabels", int(MArgument_getInteger(input[4]))); // number of labels
+	params.addParameter("NumberLabels", int(MArgument_getInteger(input[4]))); // number of labels
 	params.addParameter("Lambda", MArgument_getReal(input[5])); // lambda
-	params.addParameter("Mu", MArgument_getReal(input[6])); // mu
+	params.addParameter("Sigma", MArgument_getReal(input[6])); // lambda1
+	params.addParameter("Mu", MArgument_getReal(input[7])); // mu
 
 	//compute cut
 	elib::MultiLabelGraphcut mlgc;
 	label_image = mlgc.adaptive_multilabel_graphcut(*input_label_image, *input_image, params);
-	if(label_image == nullptr)
+	if (label_image == nullptr)
 	{
 		return LIBRARY_FUNCTION_ERROR;
 	}
@@ -167,8 +183,9 @@ DLLEXPORT int llAdaptiveMultiLabelGraphcut(WolframLibraryData libData, mint narg
 	mint dimensions[input_image->getRank()];
 	std::reverse_copy(input_image->getDimensions()->begin(), input_image->getDimensions()->end(), dimensions);
 	libData->MTensor_new(MType_Integer, input_image->getRank(), dimensions, &tensor);
-	std::copy(label_image->getData(), label_image->getData()+label_image->getFlattenedLength(), libData->MTensor_getIntegerData(tensor));
-	MArgument_setMTensor(output,tensor);
+	std::copy(label_image->getData(), label_image->getData() + label_image->getFlattenedLength(),
+			libData->MTensor_getIntegerData(tensor));
+	MArgument_setMTensor(output, tensor);
 
 	delete input_image;
 	delete input_label_image;
@@ -186,21 +203,21 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 //	int debug = 1;
 //	while(debug);
 
-	points=elib::LibraryLinkUtilities<double>::llGetRealTensor(libData,  MArgument_getMTensor(input[0]));
-	dimensions=elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData,  MArgument_getMTensor(input[1]));
+	points = elib::LibraryLinkUtilities<double>::llGetRealTensor(libData, MArgument_getMTensor(input[0]));
+	dimensions = elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData, MArgument_getMTensor(input[1]));
 	params.addParameter("Dimensions", *dimensions);
-	original_dimensions=elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData,  MArgument_getMTensor(input[2]));
+	original_dimensions = elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData, MArgument_getMTensor(input[2]));
 	params.addParameter("OriginalDimensions", *original_dimensions);
 	params.addParameter("Rank", 2);
 	params.addParameter("Radius", MArgument_getReal(input[3]));
 	params.addParameter("LateralProjectionRange", MArgument_getReal(input[4]));
 	params.addParameter("BandWidth", MArgument_getReal(input[5]));
-	params.addParameter("Type",int(MArgument_getInteger(input[6])));
-	params.addParameter("CentralMeridian",MArgument_getReal(input[7]));
-	params.addParameter("StandardParallel",MArgument_getReal(input[8]));
+	params.addParameter("Type", int(MArgument_getInteger(input[6])));
+	params.addParameter("CentralMeridian", MArgument_getReal(input[7]));
+	params.addParameter("StandardParallel", MArgument_getReal(input[8]));
 
 	result = elib::Density::calculateDensity(*points, params);
-	if(result == nullptr)
+	if (result == nullptr)
 	{
 		return LIBRARY_FUNCTION_ERROR;
 	}
@@ -208,10 +225,56 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 	mint dims[result->getRank()];
 	std::copy(result->getDimensions()->begin(), result->getDimensions()->end(), dims);
 	libData->MTensor_new(MType_Real, result->getRank(), dims, &density);
-	std::copy(result->getData(), result->getData()+result->getFlattenedLength(), libData->MTensor_getRealData(density));
-	MArgument_setMTensor(output,density);
+	std::copy(result->getData(), result->getData() + result->getFlattenedLength(),
+			libData->MTensor_getRealData(density));
+	MArgument_setMTensor(output, density);
 
 	delete result;
+	return LIBRARY_NO_ERROR;
+}
+
+DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	char *file_name = MArgument_getUTF8String(input[0]);
+	mint type = MArgument_getInteger(input[1]);
+	char *root = MArgument_getUTF8String(input[2]);
+	mint depth = MArgument_getInteger(input[3]);
+
+	try
+	{
+		elib::HDF5Reader reader = elib::HDF5Reader(libData, std::string(file_name));
+		switch (type)
+		{
+			case 0: /* read groups */
+				vector<string> names;
+				reader.readGroupNames(names, std::string(root), depth);
+				MLINK loopback = libData->getMathLink(libData);
+				MLPutFunction(loopback, "List", names.size());
+				for (string i : names)
+				{
+					MLPutString(loopback, i.c_str());
+				}
+				MLEndPacket(loopback);
+				MLClose(loopback);
+				break;
+		}
+	} catch (H5Exception &e)
+	{
+		char err_msg[500];
+		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.getCMessage(), "]");
+		MLINK loopback = libData->getMathLink(libData);
+		MLNewPacket(loopback);
+		MLPutFunction(loopback, "EvaluatePacket", 1L);
+		MLPutFunction(loopback, "ToExpression", 1L);
+		MLPutString(loopback, err_msg);
+		MLNextPacket(loopback);
+		MLNewPacket(loopback);
+		MLPutSymbol(loopback, "$Failed");
+		MLClose(loopback);
+	}
+
+	libData->UTF8String_disown(file_name);
+	libData->UTF8String_disown(root);
 	return LIBRARY_NO_ERROR;
 }
 
@@ -222,7 +285,7 @@ DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input
 	strncpy(version,"Unknown",1024);
 	MArgument_setUTF8String(output, version);
 #else
-	strncpy(version,ELIB_REVISION, 1024);
+	strncpy(version, ELIB_REVISION, 1024);
 	MArgument_setUTF8String(output, version);
 #endif
 	return LIBRARY_NO_ERROR;

@@ -62,8 +62,8 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
     int nodeCount;
     float value;
     float maxIntensity = powf(2.,bitDepth)-1.;
-    float   bg = c0*maxIntensity,
-            fg = c1*maxIntensity;
+    float bg = c0*maxIntensity,
+          fg = c1*maxIntensity;
 	/****** Build Unary Term *************************/
 	for(int k=0; k<depth; ++k )
 	{
@@ -145,11 +145,12 @@ void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_ima
 	using graphcut::Energy;
 
 	const Tensor<float> *background, *foreground;
-	double lambda;
+	float lambda, sigma;
 	if(
 		(background=parameters.getFloatTensorParameter("C0")) == nullptr ||
 		(foreground=parameters.getFloatTensorParameter("C1")) == nullptr ||
-		elib::isnan(lambda=parameters.getDoubleParameter("Lambda"))
+		elib::isnan(lambda=parameters.getDoubleParameter("Lambda")) ||
+		elib::isnan(sigma=parameters.getDoubleParameter("Sigma"))
 	)
 	{
 		binary_image = nullptr;
@@ -212,6 +213,7 @@ void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_ima
 	/******* Build pairwise terms ********************/
 	int other;
 	int x, y, z;
+    float maxIntensity = powf(2.,input_image.getBitDepth())-1.;
 	for(int k=0; k<depth; ++k)
 	{
 		for (int j=0; j<height; ++j)
@@ -228,7 +230,7 @@ void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_ima
 					other = x + y*width + z*width*height;
 					if (!(x<0 || x>=width || y<0 || y>=height || z<0 || z>=depth))
 					{
-						value = lambda+expf(-powf(float(input_image_data[nodeCount] - input_image_data[other]),2));
+						value = lambda*expf(-powf(float(input_image_data[nodeCount] - input_image_data[other])/maxIntensity,2)/sigma);
 						energy->add_term2(varx[nodeCount], varx[other], 0., value, value, 0.);
 					}
 				}

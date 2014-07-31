@@ -41,6 +41,7 @@
 									<listOptionValue builtIn="false" value="/usr//lib/c++/v1/"/>
 									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/IncludeFiles/C"/>
 									<listOptionValue builtIn="false" value="/Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions/"/>
+									<listOptionValue builtIn="false" value="/opt/local/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.895061690" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

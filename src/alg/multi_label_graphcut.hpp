@@ -32,7 +32,9 @@ struct ForSmoothFn
 {
 		int *image;
 		float lambda;
+		float sigma;
 		float mu;
+		float max_intensity;
 		int dummyLabel;
 };
 
