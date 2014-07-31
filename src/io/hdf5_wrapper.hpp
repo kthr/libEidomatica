@@ -18,8 +18,13 @@
 #ifndef H5WRAPPER_H
 #define H5WRAPPER_H
 
+
+
 #include <hdf5.h>
 #include <string>
+
+namespace elib
+{
 
 class H5Exception
 {
@@ -109,6 +114,6 @@ public:
   int getNumAttrs() const;
 };
 
-
+} /* end namespace elib */
 
 #endif // H5WRAPPER_H

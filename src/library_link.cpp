@@ -258,7 +258,7 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* in
 				MLClose(loopback);
 				break;
 		}
-	} catch (H5Exception &e)
+	} catch (elib::H5Exception &e)
 	{
 		char err_msg[500];
 		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.getCMessage(), "]");

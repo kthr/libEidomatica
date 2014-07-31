@@ -42,7 +42,7 @@ find_package(PNG REQUIRED)
 find_package(HDF5 REQUIRED  COMPONENTS CXX C)
 if(${Boost_FOUND} AND ${Mathematica_WolframLibrary_FOUND} AND ${HDF5_FOUND})
     include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
-    target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_WolframLibrary_LIBRARIES} ${Mathematica_MathLink_LIBRARIES} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES})
+    target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_LIBRARIES} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES})
     set_target_properties(Eidomatica PROPERTIES COMPILE_DEFINITIONS "GLM_FORCE_RADIANS")
 endif()
 

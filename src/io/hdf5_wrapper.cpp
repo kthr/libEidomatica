@@ -17,6 +17,9 @@
 
 #include "hdf5_wrapper.hpp"
 
+namespace elib
+{
+
 H5Exception::H5Exception(const std::string& message)
   : message(message) {}
 
@@ -220,3 +223,4 @@ H5O::~H5O()
     throw H5Exception("H5Oclose failed");
 }
 
+} /* end namespace elib */
