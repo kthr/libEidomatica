@@ -22,31 +22,38 @@ HDF5Reader::~HDF5Reader()
 {
 }
 
-void HDF5Reader::readDatasetNames(std::vector<std::string> &names, std::string root, int depth)
+void HDF5Reader::readDatasetNames(std::vector<std::string> &names, std::string root, int depth) throw()
 {
 }
-void HDF5Reader::readData(std::vector<std::string> &dataset_names)
+void HDF5Reader::readData(std::vector<std::string> &dataset_names) throw()
 {
 
 }
-void HDF5Reader::readGroupNames(std::vector<std::string> &names, std::string root, int depth)
+void HDF5Reader::readGroupNames(std::vector<std::string> &names, std::string root, int depth) throw()
 {
-	H5F file = H5F(file_name.c_str());
-	if(!H5Oexists_by_name(file.getId(), root.data(), H5P_DEFAULT))
+	try
 	{
-		throw H5Exception("Group " + root + " doesn't exist in file " + file_name + "!");
+		H5F file = H5F(file_name.c_str());
+		if(!H5Oexists_by_name(file.getId(), root.data(), H5P_DEFAULT))
+		{
+			throw H5Exception("Group " + root + " doesn't exist in file " + file_name + "!");
+		}
+		H5O object = H5O(file, root);
+		if(depth==0)
+		{
+			if(H5Ovisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_group_name, names.data()) < 0)
+			{
+				throw H5Exception("Failed to visit ");
+			}
+			if(H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, names.data()) < 0)
+			{
+				throw H5Exception("Failed to visit ");
+			}
+		}
 	}
-	H5O object = H5O(file, root);
-	if(depth==0)
+	catch(H5Exception &e)
 	{
-		if(H5Ovisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_group_name, names.data()) < 0)
-		{
-			throw H5Exception("Failed to visit ");
-		}
-		if(H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, names.data()) < 0)
-		{
-			throw H5Exception("Failed to visit ");
-		}
+		throw e;
 	}
 	for(int i=0; i<names.size(); ++i)
 	{

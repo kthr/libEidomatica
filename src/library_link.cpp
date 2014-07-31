@@ -240,6 +240,9 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* in
 	char *root = MArgument_getUTF8String(input[2]);
 	mint depth = MArgument_getInteger(input[3]);
 
+	int debug = 1;
+	while (debug);
+
 	try
 	{
 		elib::HDF5Reader reader = elib::HDF5Reader(libData, std::string(file_name));
@@ -261,7 +264,7 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, mint nargs, MArgument* in
 	} catch (elib::H5Exception &e)
 	{
 		char err_msg[500];
-		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.getCMessage(), "]");
+		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.what(), "]");
 		MLINK loopback = libData->getMathLink(libData);
 		MLNewPacket(loopback);
 		MLPutFunction(loopback, "EvaluatePacket", 1L);

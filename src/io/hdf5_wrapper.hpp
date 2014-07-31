@@ -19,18 +19,18 @@
 #define H5WRAPPER_H
 
 
-
+#include <exception>
 #include <hdf5.h>
 #include <string>
 
 namespace elib
 {
 
-class H5Exception
+class H5Exception : public std::exception
 {
 public:
   H5Exception(const std::string& message);
-  const char* getCMessage();
+  virtual const char* what() const throw();
 
 private:
   std::string message;

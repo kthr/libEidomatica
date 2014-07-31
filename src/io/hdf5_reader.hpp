@@ -28,9 +28,9 @@ class HDF5Reader
 		HDF5Reader(WolframLibraryData libData, std::string file_name);
 		virtual ~HDF5Reader();
 
-		void readDatasetNames(std::vector<std::string> &names, std::string root, int depth);
-		void readData(std::vector<std::string> &dataset_names);
-		void readGroupNames(std::vector<std::string> &names, std::string root, int depth);
+		void readDatasetNames(std::vector<std::string> &names, std::string root, int depth) throw();
+		void readData(std::vector<std::string> &dataset_names) throw();
+		void readGroupNames(std::vector<std::string> &names, std::string root, int depth) throw();
 
 	private:
 		std::string file_name;

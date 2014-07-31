@@ -23,7 +23,7 @@ namespace elib
 H5Exception::H5Exception(const std::string& message)
   : message(message) {}
 
-const char* H5Exception::getCMessage()
+const char* H5Exception::what() const throw()
 {
    return message.c_str();
 }
