@@ -235,70 +235,119 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 
 DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 {
-	const char *file_name, *root;
-    int type, depth;
-    long length;
-    
-//    int debug = 1;
-//    while (debug);
+	const char *file_name;
+	const char *root;
+	std::vector<std::string> roots;
+	int type, depth;
+	long length;
 
-    if(!MLCheckFunction(mlp, "List", &length))
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    if(length!=4)
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    if(!MLGetString(mlp, &file_name))
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    if(!MLGetInteger(mlp, &type))
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    if(!MLGetString(mlp, &root))
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    if(!MLGetInteger(mlp, &depth))
-    {
-        return LIBRARY_FUNCTION_ERROR;
-    }
-    
+//	    int debug = 1;
+//	    while (debug);
+
+	if(!MLCheckFunction(mlp, "List", &length))
+	{
+		sendMessage(libData, "llHDF5Import", "wrong number of parameters.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	if(length!=4)
+	{
+		sendMessage(libData, "llHDF5Import", "function requests exactly four parameters.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	if(!MLGetString(mlp, &file_name))
+	{
+		sendMessage(libData, "llHDF5Import", "could not read parameter 'fileName'.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	if(!MLGetInteger(mlp, &type))
+	{
+		sendMessage(libData, "llHDF5Import", "could not read parameter 'what'.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	if(!MLCheckFunction(mlp, "List", &length))
+	{
+		sendMessage(libData, "llHDF5Import", "could not read number of entries in 'where'.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	if(length<1)
+	{
+		sendMessage(libData, "llHDF5Import", "wrong number of parameters for 'where'.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+	for(int i=0; i<length; ++i)
+	{
+		if(!MLGetString(mlp, &root))
+		{
+			sendMessage(libData, "llHDF5Import", "failed to read entry from 'where'.");
+			MLPutSymbol(mlp, "$Failed");
+			return LIBRARY_NO_ERROR;
+		}
+		if(std::string(root).compare("")==0)
+		{
+			roots.push_back("/");
+		}
+		else
+		{
+			roots.push_back(std::string(root));
+		}
+	}
+	if(!MLGetInteger(mlp, &depth))
+	{
+		sendMessage(libData, "llHDF5Import", "could not read parameter 'depth'.");
+		MLPutSymbol(mlp, "$Failed");
+		return LIBRARY_NO_ERROR;
+	}
+
+	elib::HDF5Reader reader;
 	try
 	{
-		elib::HDF5Reader reader = elib::HDF5Reader(libData, std::string(file_name));
+		reader = elib::HDF5Reader(mlp, std::string(file_name));
 		switch (type)
 		{
-			case 0: /* read groups */
+			case 0: /* read annotations */
+				break;
+			case 1:
+			{
+				reader.readData(roots);
+				MLEndPacket(mlp);
+			}
+				break;
+			case 2: /* read names */
+			{
 				vector<string> names;
-				reader.readGroupNames(names, std::string(root), depth);
-                MLPutFunction(mlp, "List", names.size());
-                for (string i : names)
-                {
-                    MLPutString(mlp, i.c_str());
-                }
-                MLEndPacket(mlp);
+				reader.readNames(names, roots, depth);
+				MLPutFunction(mlp, "List", names.size());
+				for (string i : names)
+				{
+					MLPutString(mlp, i.c_str());
+				}
+				MLEndPacket(mlp);
+			}
+				break;
+			default:
+			{
+				throw(elib::H5Exception("Don't know what to read!"));
+			}
 				break;
 		}
 	}
 	catch (elib::H5Exception &e)
 	{
-		char err_msg[500];
-		sprintf(err_msg, "%s\"%.76s\"%s", "Message[libEidomtica::hdf5,", e.what(), "]");
-		MLNewPacket(mlp);
-		MLPutFunction(mlp, "EvaluatePacket", 1L);
-		MLPutFunction(mlp, "ToExpression", 1L);
-		MLPutString(mlp, err_msg);
-		MLNextPacket(mlp);
-		MLNewPacket(mlp);
-		MLPutSymbol(mlp, "$Failed");
-    }
+		sendMessage(libData, "llHDF5Import", e.what());
+		MLReleaseString(mlp, file_name);
+		MLReleaseString(mlp, root);
+		return LIBRARY_NO_ERROR;
+	}
 
-    MLReleaseString(mlp, file_name);
+	MLReleaseString(mlp, file_name);
 	MLReleaseString(mlp, root);
+	MLEndPacket(mlp);
 	return LIBRARY_NO_ERROR;
 }
 
@@ -313,4 +362,18 @@ DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input
 	MArgument_setUTF8String(output, version);
 #endif
 	return LIBRARY_NO_ERROR;
+}
+
+void sendMessage(WolframLibraryData libData, const char *function_name, const char *message)
+{
+	MLINK loopback = libData->getMathLink(libData);
+    MLPutFunction(loopback, "EvaluatePacket", 1);
+	MLPutFunction(loopback, "Message", 2);
+	MLPutFunction(loopback, "MessageName", 2);
+    MLPutSymbol(loopback, function_name);
+	MLPutString(loopback, "error");
+	MLPutString(loopback, message);
+	libData->processMathLink(loopback);
+	MLNextPacket(loopback);
+	MLNewPacket(loopback);
 }

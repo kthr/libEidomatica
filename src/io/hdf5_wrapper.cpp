@@ -40,7 +40,7 @@ H5F::H5F(const std::string& filename)
   id = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
   if( id<0 )
   {
-    throw H5Exception("H5Fopen failed");
+    throw H5Exception("Could not open '" + filename + "'!");
   }
 }
 
@@ -213,7 +213,7 @@ H5O::H5O(const H5F& file, const std::string& dataset)
   id = H5Oopen(file.getId(), dataset.c_str(), H5P_DEFAULT);
   if( id<0 )
   {
-    throw H5Exception("H5Oopen failed");
+    throw H5Exception("Could not open the object '" + dataset + "'!");
   }
 }
 

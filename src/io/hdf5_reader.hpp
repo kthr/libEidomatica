@@ -11,30 +11,38 @@
 #include <hdf5.h>
 #include <string>
 #include <vector>
-#include <WolframLibrary.h>
+
+#include "hdf5_wrapper.hpp"
+#include "mathlink.h"
+#include "WolframLibrary.h"
 
 namespace elib
 {
 
 extern "C"
 {
-  herr_t put_group_name(hid_t o_id, const char *name, const H5O_info_t *object_info, void *op_data);
-  herr_t put_link_name( hid_t g_id, const char *name, const H5L_info_t *info, void *op_data);
+	herr_t put_group_name(hid_t o_id, const char *name, const H5O_info_t *object_info, void *op_data);
+	herr_t put_link_name(hid_t g_id, const char *name, const H5L_info_t *info, void *op_data);
 }
 
 class HDF5Reader
 {
 	public:
-		HDF5Reader(WolframLibraryData libData, std::string file_name);
+		HDF5Reader();
+		HDF5Reader(MLINK mlp, std::string file_name);
 		virtual ~HDF5Reader();
 
-		void readDatasetNames(std::vector<std::string> &names, std::string root, int depth) throw();
-		void readData(std::vector<std::string> &dataset_names) throw();
-		void readGroupNames(std::vector<std::string> &names, std::string root, int depth) throw();
+		void readAnnotations(std::vector<std::string> &object_names);
+		void readData(std::vector<std::string> &dataset_names);
+		void readNames(std::vector<std::string> &names, std::vector<std::string> &roots, int depth);
 
 	private:
-		std::string file_name;
-		WolframLibraryData libData;
+		void readIntegerData(MLINK loop, std::string dataset_name, const H5D &dataset);
+		void readFloatData(MLINK loop, std::string dataset_name, const H5D &dataset);
+		void readStringData(MLINK loop, std::string dataset_name, const H5D &dataset);
+
+		std::string file_name = "";
+		MLINK mlp = nullptr;
 };
 
 } /* namespace elib */
