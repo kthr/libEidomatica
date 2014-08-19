@@ -311,6 +311,8 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 		switch (type)
 		{
 			case 0: /* read annotations */
+                reader.readAnnotations(roots);
+                MLEndPacket(mlp);
 				break;
 			case 1:
 			{

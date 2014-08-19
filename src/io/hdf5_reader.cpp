@@ -61,8 +61,11 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 
 		H5F file(file_name);
 
-		MLPutFunction(loopback, "List", n);
-
+        if(n>1)
+        {
+            MLPutFunction(loopback, "List", n);
+        }
+        
 		/* Loop over all requested datasets */
 		for (std::string dataset_name : object_names)
 		{
