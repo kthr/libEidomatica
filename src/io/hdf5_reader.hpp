@@ -23,6 +23,7 @@ extern "C"
 {
 	herr_t put_group_name(hid_t o_id, const char *name, const H5O_info_t *object_info, void *op_data);
 	herr_t put_link_name(hid_t g_id, const char *name, const H5L_info_t *info, void *op_data);
+	herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A_info_t *ainfo, void *op_data);
 }
 
 class HDF5Reader

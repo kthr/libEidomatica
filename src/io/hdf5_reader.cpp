@@ -29,24 +29,99 @@ HDF5Reader::~HDF5Reader()
 {
 }
 
-void readAnnotations(std::vector<std::string> &object_names)
+void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 {
+	/* Get the list of datasets to be read from Mathematica*/
+	long n = object_names.size();
+	if (n < 0)
+	{
+		MLPutFunction(mlp, "List", 0);
+		return;
+	}
 
+	/* Create a loopback link to store the list until we are sure it can be fully
+	 filled. This way if something fails we can abort and send $Failed back. */
+	MLINK loopback = NULL;
+	MLENV env;
+	int error;
+
+	try
+	{
+		env = MLInitialize((char *)0);
+		if(env == (MLENV)0)
+		{
+			throw H5Exception("Unable to create ml environment!");
+		}
+
+		loopback = MLLoopbackOpen(env, &error);
+		if(loopback == (MLINK)0 || error != MLEOK)
+		{
+			throw H5Exception("Unable to open loopback link!");
+		}
+
+		H5F file(file_name);
+
+		MLPutFunction(loopback, "List", n);
+
+		/* Loop over all requested datasets */
+		for (std::string dataset_name : object_names)
+		{
+			hid_t object;
+			if (!((object = H5Oopen(file.getId(), dataset_name.c_str(), H5P_DEFAULT)) > 0))
+				throw(H5Exception("Could not open object in " + dataset_name));
+			int nAttrs;
+			switch (H5Iget_type(object))
+			{
+				case H5I_GROUP:
+				{
+					H5G group(file, dataset_name);
+					nAttrs = group.getNumAttrs();
+					MLPutFunction(loopback, "List", nAttrs);
+					H5Aiterate(group.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
+				}
+					break;
+				case H5I_DATASET:
+				{
+					H5D dataset(file, dataset_name);
+					nAttrs = dataset.getNumAttrs();
+					MLPutFunction(loopback, "List", nAttrs);
+					H5Aiterate(dataset.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
+				}
+					break;
+				default:
+					throw(H5Exception("Reading annotations only supported for Datasets and Groups!"));
+					break;
+			}
+			H5Oclose(object);
+		}
+	} catch (H5Exception &e)
+	{
+		MLClose(loopback);
+		MLDeinitialize(env);
+		MLPutSymbol(mlp, "$Failed");
+		throw e;
+	}
+
+	/* Transfer data from loopback to actual Mathematica link */
+	MLTransferToEndOfLoopbackLink(mlp, loopback);
+	MLClose(loopback);
+	MLDeinitialize(env);
 }
 
 void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 {
-	MLINK loop = NULL;
-	MLENV env = NULL;
+	MLINK loopback = NULL;
+	MLENV env;
 	int error;
 
 	env = MLInitialize((char *)0);
 	if(env == (MLENV)0)
 	{
-		throw H5Exception("Unable to create loopback environment!");
+		throw H5Exception("Unable to create ml environment!");
 	}
-	loop = MLLoopbackOpen(env, &error);
-	if(loop == (MLINK)0 || error != MLEOK)
+
+	loopback = MLLoopbackOpen(env, &error);
+	if(loopback == (MLINK)0 || error != MLEOK)
 	{
 		throw H5Exception("Unable to open loopback link!");
 	}
@@ -55,7 +130,7 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 		H5F file = H5F(file_name.c_str());
 		if(dataset_names.size() > 1)
 		{
-			MLPutFunction(loop, "List", dataset_names.size());
+			MLPutFunction(loopback, "List", dataset_names.size());
 		}
 		for (std::string dataset_name : dataset_names)
 		{
@@ -76,17 +151,17 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 			{
 				case H5T_INTEGER:
 				{
-					readIntegerData(loop, dataset_name, dataset);
+					readIntegerData(loopback, dataset_name, dataset);
 				}
 					break;
 				case H5T_FLOAT:
 				{
-					readFloatData(loop, dataset_name, dataset);
+					readFloatData(loopback, dataset_name, dataset);
 				}
 					break;
 				case H5T_STRING:
 				{
-					readStringData(loop, dataset_name, dataset);
+					readStringData(loopback, dataset_name, dataset);
 				}
 					break;
 				default:
@@ -99,13 +174,13 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 	}
 	catch (H5Exception &e)
 	{
+		MLClose(loopback);
 		MLDeinitialize(env);
-		MLClose(loop);
 		MLPutSymbol(mlp, "$Failed");
 		throw e;
 	}
-	MLTransferExpression(mlp, loop);
-	MLClose(loop);
+	MLTransferExpression(mlp, loopback);
+	MLClose(loopback);
 	MLDeinitialize(env);
 }
 void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::string> &roots, int depth)
@@ -113,27 +188,59 @@ void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::str
 	try
 	{
 		H5F file = H5F(file_name.c_str());
-		for (std::string root : roots)
+		if(depth == 0)
 		{
-			if (H5Oexists_by_name(file.getId(), root.c_str(), H5P_DEFAULT) != true)
+			for (std::string root : roots)
 			{
-				throw H5Exception("Group '" + root + "' doesn't exist in file '" + file_name + "'!");
-			}
-			H5O object = H5O(file, root);
-			std::vector<std::string> tmp;
-			if (depth == 0)
-			{
-				if (H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, &tmp) < 0)
+				if (H5Oexists_by_name(file.getId(), root.c_str(), H5P_DEFAULT) != true)
 				{
-					throw H5Exception("Failed to visit object '" + root + "'");
+					throw H5Exception("Group '" + root + "' doesn't exist in file '" + file_name + "'!");
 				}
+				H5O object = H5O(file, root);
+				std::vector<std::string> tmp;
+				if (depth == 0)
+				{
+					if (H5Lvisit(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, put_link_name, &tmp) < 0)
+					{
+						throw H5Exception("Failed to visit object '" + root + "'");
+					}
+				}
+				boost::filesystem::path dir(root);
+				for (int i = 0; i < tmp.size(); ++i)
+				{
+					tmp[i] = (dir / boost::filesystem::path(tmp[i])).string();
+				}
+				names.insert(names.end(), tmp.begin(), tmp.end());
 			}
-			boost::filesystem::path dir(root);
-			for (int i = 0; i < tmp.size(); ++i)
+		}
+		else if(depth >= 1)
+		{
+			for (std::string root : roots)
 			{
-				tmp[i] = (dir / boost::filesystem::path(tmp[i])).string();
+				if (H5Oexists_by_name(file.getId(), root.c_str(), H5P_DEFAULT) != true)
+				{
+					throw H5Exception("Group '" + root + "' doesn't exist in file '" + file_name + "'!");
+				}
+				H5O object = H5O(file, root);
+				std::vector<std::string> tmp;
+				if (depth == 0)
+				{
+					if (H5Literate(file.getId(), H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, NULL, put_link_name, &tmp) < 0)
+					{
+						throw H5Exception("Failed to iterate children of object '" + root + "'");
+					}
+				}
+				boost::filesystem::path dir(root);
+				for (int i = 0; i < tmp.size(); ++i)
+				{
+					tmp[i] = (dir / boost::filesystem::path(tmp[i])).string();
+				}
+				names.insert(names.end(), tmp.begin(), tmp.end());
 			}
-			names.insert(names.end(), tmp.begin(), tmp.end());
+		}
+		else
+		{
+			throw H5Exception("Depth has to be greater or equal than 0!");
 		}
 	} catch (H5Exception &e)
 	{
@@ -317,6 +424,65 @@ herr_t put_link_name(hid_t g_id, const char *name, const H5L_info_t *info, void 
 	std::vector<std::string> *linkNames = (std::vector<std::string> *) op_data;
 	if (info->type == H5L_TYPE_SOFT || info->type == H5L_TYPE_HARD)
 		linkNames->push_back(std::string(name));
+	return 0;
+}
+
+herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A_info_t *ainfo, void *op_data)
+{
+	MLINK loopback = *((MLINK*) op_data);
+
+	H5A attr(location_id, attr_name);
+
+	H5T datatype(attr);
+	H5T_class_t typeclass = H5Tget_class(datatype.getId());
+	size_t size = datatype.getSize();
+
+	MLPutFunction(loopback, "Rule", 2);
+	MLPutString(loopback, attr_name);
+
+	if ((typeclass == H5T_INTEGER && size == 4) || (typeclass == H5T_FLOAT && size == 8))
+	{
+		H5S dataspace(attr);
+		const int rank = dataspace.getSimpleExtentNDims();
+		std::vector<hsize_t> dims(rank);
+		dataspace.getSimpleExtentDims(dims.data());
+		int nElems = 1;
+		for (int k = 0; k < rank; k++)
+		{
+			nElems *= dims[k];
+		}
+
+		std::vector<long int> idims(rank);
+		for (int k = 0; k < rank; k++)
+		{
+			idims[k] = dims[k];
+		}
+
+		char* values = new char[nElems * size];
+		if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) values) < 0)
+			throw(H5Exception("Failed to read data for attribute"));
+
+		if (typeclass == H5T_INTEGER)
+			MLPutIntegerArray(loopback, (int *) values, idims.data(), 0, rank);
+		else if (typeclass == H5T_FLOAT)
+			MLPutRealArray(loopback, (double *) values, idims.data(), 0, rank);
+
+		delete[] values;
+	}
+	else if (typeclass == H5T_STRING)
+	{
+		/* Include space for a null terminator in case it isn't in the attribute */
+		std::vector<char> str(size + 1);
+		str[size] = '\0';
+		if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) str.data()) < 0)
+			throw(H5Exception("Failed to read data for attribute"));
+		MLPutString(loopback, str.data());
+	}
+	else
+	{
+		MLPutSymbol(loopback, "Null");
+	}
+
 	return 0;
 }
 
