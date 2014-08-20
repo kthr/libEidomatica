@@ -101,7 +101,6 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 	{
 		MLClose(loopback);
 		MLDeinitialize(env);
-		MLPutSymbol(mlp, "$Failed");
 		throw e;
 	}
 
@@ -179,7 +178,6 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 	{
 		MLClose(loopback);
 		MLDeinitialize(env);
-		MLPutSymbol(mlp, "$Failed");
 		throw e;
 	}
 	MLTransferExpression(mlp, loopback);
@@ -197,7 +195,7 @@ void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::str
 			{
 				if (H5Oexists_by_name(file.getId(), root.c_str(), H5P_DEFAULT) != true)
 				{
-					throw H5Exception("Group '" + root + "' doesn't exist in file '" + file_name + "'!");
+					throw H5Exception("Object '" + root + "' doesn't exist in file '" + file_name + "'!");
 				}
 				H5O object = H5O(file, root);
 				std::vector<std::string> tmp;
@@ -222,21 +220,19 @@ void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::str
 			{
 				if (H5Oexists_by_name(file.getId(), root.c_str(), H5P_DEFAULT) != true)
 				{
-					throw H5Exception("Group '" + root + "' doesn't exist in file '" + file_name + "'!");
+					throw H5Exception("Object '" + root + "' doesn't exist in file '" + file_name + "'!");
 				}
 				H5O object = H5O(file, root);
 				std::vector<std::string> tmp;
-				if (depth == 0)
-				{
-					if (H5Literate(file.getId(), H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, NULL, put_link_name, &tmp) < 0)
-					{
-						throw H5Exception("Failed to iterate children of object '" + root + "'");
-					}
-				}
+				H5Literate(object.getId(),  H5_INDEX_NAME , H5_ITER_NATIVE, NULL, put_link_name, &tmp);
 				boost::filesystem::path dir(root);
 				for (int i = 0; i < tmp.size(); ++i)
 				{
 					tmp[i] = (dir / boost::filesystem::path(tmp[i])).string();
+				}
+				if(depth>1)
+				{
+					readNames(names, tmp, depth-1);
 				}
 				names.insert(names.end(), tmp.begin(), tmp.end());
 			}

@@ -344,6 +344,7 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 		sendMessage(libData, "llHDF5Import", e.what());
 		MLReleaseString(mlp, file_name);
 		MLReleaseString(mlp, root);
+		MLPutSymbol(mlp, "$Failed");
 		return LIBRARY_NO_ERROR;
 	}
 
