@@ -61,47 +61,54 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 
 		H5F file(file_name);
 
-        if(n>1)
-        {
-            MLPutFunction(loopback, "List", n);
-        }
-        
+		if(n>1)
+		{
+			MLPutFunction(loopback, "List", n);
+		}
+
 		/* Loop over all requested datasets */
 		for (std::string dataset_name : object_names)
 		{
-			hid_t object;
-			if (!((object = H5Oopen(file.getId(), dataset_name.c_str(), H5P_DEFAULT)) > 0))
-				throw(H5Exception("Could not open object in " + dataset_name));
-			int nAttrs;
-			switch (H5Iget_type(object))
-			{
-				case H5I_GROUP:
+			try{
+				hid_t object;
+				if (!((object = H5Oopen(file.getId(), dataset_name.c_str(), H5P_DEFAULT)) > 0))
+					throw(H5Exception("Could not open object in " + dataset_name));
+				int nAttrs;
+				switch (H5Iget_type(object))
 				{
-					H5G group(file, dataset_name);
-					nAttrs = group.getNumAttrs();
-					MLPutFunction(loopback, "List", nAttrs);
-					H5Aiterate(group.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
+					case H5I_GROUP:
+					{
+						H5G group(file, dataset_name);
+						nAttrs = group.getNumAttrs();
+						MLPutFunction(loopback, "List", nAttrs);
+						H5Aiterate(group.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
+					}
+						break;
+					case H5I_DATASET:
+					{
+						H5D dataset(file, dataset_name);
+						nAttrs = dataset.getNumAttrs();
+						MLPutFunction(loopback, "List", nAttrs);
+						H5Aiterate(dataset.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
+					}
+						break;
+					default:
+						throw(H5Exception("Reading annotations only supported for Datasets and Groups!"));
+						break;
 				}
-					break;
-				case H5I_DATASET:
-				{
-					H5D dataset(file, dataset_name);
-					nAttrs = dataset.getNumAttrs();
-					MLPutFunction(loopback, "List", nAttrs);
-					H5Aiterate(dataset.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
-				}
-					break;
-				default:
-					throw(H5Exception("Reading annotations only supported for Datasets and Groups!"));
-					break;
+				H5Oclose(object);
 			}
-			H5Oclose(object);
+			catch(H5Exception &e)
+			{
+				throw H5Exception("Failed to read annotation in dataset " + dataset_name + ":" + e.what());
+			}
 		}
-	} catch (H5Exception &e)
+	}
+	catch (H5Exception &e)
 	{
 		MLClose(loopback);
 		MLDeinitialize(env);
-		throw e;
+		throw &e;
 	}
 
 	/* Transfer data from loopback to actual Mathematica link */
@@ -439,48 +446,128 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 	MLPutFunction(loopback, "Rule", 2);
 	MLPutString(loopback, attr_name);
 
-	if ((typeclass == H5T_INTEGER) || (typeclass == H5T_FLOAT))
+	try
 	{
-		H5S dataspace(attr);
-		const int rank = dataspace.getSimpleExtentNDims();
-		std::vector<hsize_t> dims(rank);
-		dataspace.getSimpleExtentDims(dims.data());
-		int nElems = 1;
-		for (int k = 0; k < rank; k++)
+		if ((typeclass == H5T_INTEGER) || (typeclass == H5T_FLOAT))
 		{
-			nElems *= dims[k];
-		}
+			H5S dataspace(attr);
+			const int rank = dataspace.getSimpleExtentNDims();
+			std::vector<hsize_t> dims(rank);
+			dataspace.getSimpleExtentDims(dims.data());
+			int nElems = 1;
+			for (int k = 0; k < rank; k++)
+			{
+				nElems *= dims[k];
+			}
 
-		std::vector<long int> idims(rank);
-		for (int k = 0; k < rank; k++)
+			std::vector<long int> idims(rank);
+			for (int k = 0; k < rank; k++)
+			{
+				idims[k] = dims[k];
+			}
+			std::vector<long int> long_dim(rank);
+			std::vector<int> int_dim(rank);
+			for (int j = 0; j < rank; j++)
+			{
+				long_dim[j] = dims[j];
+				int_dim[j] = dims[j];
+			}
+
+			if (typeclass == H5T_INTEGER)
+			{
+				if(size == 1 || size == 2)
+				{
+					std::vector<short> data(nElems);
+					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
+					{
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+					}
+					if (rank == 0)
+						MLPutInteger16(loopback, data[0]);
+					else
+						MLPutInteger16Array(loopback, data.data(), int_dim.data(), 0, rank);
+				}
+				else if(size == 4)
+				{
+					std::vector<int> data(nElems);
+					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
+					{
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+					}
+					if (rank == 0)
+						MLPutInteger(loopback, data[0]);
+					else
+						MLPutIntegerArray(loopback, data.data(), long_dim.data(), 0, rank);
+
+				}
+				else if(size == 8)
+				{
+					std::vector<mlint64> data(nElems);
+					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
+					{
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+					}
+					if (rank == 0)
+						MLPutInteger64(loopback, data[0]);
+					else
+						MLPutInteger64Array(loopback, data.data(), int_dim.data(), 0, rank);
+				}
+				else
+				{
+					throw H5Exception("Bitdepth not supported for " + std::string(attr_name) + "!");
+				}
+
+			}
+			else if (typeclass == H5T_FLOAT)
+			{
+				if(size == 4)
+				{
+					std::vector<float> data(nElems);
+					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
+					{
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+					}
+					if (rank == 0)
+						MLPutReal32(loopback, data[0]);
+					else
+						MLPutReal32Array(loopback, data.data(), int_dim.data(), 0, rank);
+				}
+				else if(size == 8)
+				{
+					std::vector<double> data(nElems);
+					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
+					{
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+					}
+					if (rank == 0)
+						MLPutReal64(loopback, data[0]);
+					else
+						MLPutReal64Array(loopback, data.data(), int_dim.data(), 0, rank);
+				}
+				else
+				{
+					throw H5Exception("Bitdepth not supported for " + std::string(attr_name) + "!");
+				}
+			}
+		}
+		else if (typeclass == H5T_STRING)
 		{
-			idims[k] = dims[k];
+			/* Include space for a null terminator in case it isn't in the attribute */
+			std::vector<char> str(size + 1);
+			str[size] = '\0';
+			if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) str.data()) < 0)
+				throw(H5Exception("Failed to read data for attribute"));
+			MLPutString(loopback, str.data());
 		}
-
-		char* values = new char[nElems * size];
-		if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) values) < 0)
-			throw(H5Exception("Failed to read data for attribute"));
-
-		if (typeclass == H5T_INTEGER)
-			MLPutIntegerArray(loopback, (int *) values, idims.data(), 0, rank);
-		else if (typeclass == H5T_FLOAT)
-			MLPutRealArray(loopback, (double *) values, idims.data(), 0, rank);
-
-		delete[] values;
-	}
-	else if (typeclass == H5T_STRING)
-	{
-		/* Include space for a null terminator in case it isn't in the attribute */
-		std::vector<char> str(size + 1);
-		str[size] = '\0';
-		if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) str.data()) < 0)
-			throw(H5Exception("Failed to read data for attribute"));
-		MLPutString(loopback, str.data());
-	}
-	else
-	{
-		MLPutSymbol(loopback, "Null");
-	}
+		else
+		{
+			throw H5Exception("Datatype not supported for " + std::string(attr_name) + "!");
+		}
+    }
+    catch(H5Exception &e)
+    {
+        throw e;
+    }
 
 	return 0;
 }
