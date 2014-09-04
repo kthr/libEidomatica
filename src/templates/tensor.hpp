@@ -46,8 +46,8 @@ class Tensor
 				}
 				this->data = std::unique_ptr<T>(new T[flattened_length]);
 				this->dimensions = std::vector<int>(rank);
-				std::copy(dimensions, dimensions + flattened_length, this->dimensions.begin());
-				std::fill_n(this->data.get(), flattened_length, 0);
+				std::copy(dimensions, dimensions + rank, this->dimensions.begin());
+				std::fill_n(this->data.get(), rank, 0);
 			}
 		}
 		Tensor(int rank, const std::vector<int> &dimensions) : rank(rank)
