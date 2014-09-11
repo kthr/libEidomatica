@@ -7,6 +7,7 @@
 
 #include "library_link.hpp"
 
+#include <algorithm>
 #include <string>
 
 #include "alg/density.hpp"
