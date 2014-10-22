@@ -25,11 +25,11 @@ class Tensor
 		Tensor(const Tensor &other)
 		: flattened_length(other.flattened_length), rank(other.rank)
 		{
-			dimensions = std::vector<int>(rank);
-			data = std::unique_ptr<T>(new T[flattened_length]);
+			this->dimensions = std::vector<int>(this->rank);
+			this->data = std::unique_ptr<T>(new T[this->flattened_length]);
 
-			std::copy(other.dimensions.begin(), other.dimensions.end(), dimensions.begin());
-			std::copy(other.data.get(), other.data.get()+flattened_length, data.get());
+			std::copy(other.dimensions.begin(), other.dimensions.end(), this->dimensions.begin());
+			std::copy(other.data.get(), other.data.get()+this->flattened_length, this->data.get());
 		}
 		Tensor(const Tensor &&other)
 		: Tensor()
@@ -40,30 +40,30 @@ class Tensor
 		{
 			if(rank > 0)
 			{
-				flattened_length = dimensions[0];
+				this->flattened_length = dimensions[0];
 				for(int i=1; i<rank; ++i)
 				{
-					flattened_length *= dimensions[i];
+					this->flattened_length *= dimensions[i];
 				}
-				this->data = std::unique_ptr<T>(new T[flattened_length]);
+				this->data = std::unique_ptr<T>(new T[this->flattened_length]);
 				this->dimensions = std::vector<int>(rank);
 				std::copy(dimensions, dimensions + rank, this->dimensions.begin());
-				std::fill_n(this->data.get(), rank, 0);
+				std::fill_n(this->data.get(), this->flattened_length, 0);
 			}
 		}
 		Tensor(int rank, const std::vector<int> &dimensions) : rank(rank)
 		{
 			if(rank > 0)
 			{
-				flattened_length = dimensions[0];
+				this->flattened_length = dimensions[0];
 				for(int i=1; i<rank; ++i)
 				{
-					flattened_length *= dimensions[i];
+					this->flattened_length *= dimensions[i];
 				}
 				this->data = std::unique_ptr<T>(new T[flattened_length]);
 				this->dimensions = std::vector<int>(rank);
 				std::copy(dimensions.begin(), dimensions.end(), this->dimensions.begin());
-				std::fill_n(this->data.get(), flattened_length, 0);
+				std::fill_n(this->data.get(), this->flattened_length, 0);
 			}
 		}
 		Tensor(int rank, const std::vector<int> &dimensions, const T *data) : Tensor(rank, dimensions)

@@ -55,7 +55,7 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 			case static_cast<int>(density_type::BONNE):
 				for(int k=0; k<points.getFlattenedLength(); k+=2)
 				{
-					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dimensions->getData()));
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dims));
 				}
 				for(int j = 0; j < dims[1]; ++j)
 				{
@@ -103,7 +103,7 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 			case static_cast<int>(density_type::MERCATOR):
 				for(int k=0; k<points.getFlattenedLength(); k+=2)
 				{
-					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dimensions->getData()));
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dims));
 				}
 				for(int j=0; j<dims[1]; ++j)
 				{
