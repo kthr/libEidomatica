@@ -52,6 +52,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+install(TARGETS Eidomatica DESTINATION "${Mathematica_USERBASE_DIR}/Applications/Eidomatica/LibraryResources/${Mathematica_HOST_SYSTEM_ID}")
+
 if(APPLE)
     message("\nEntering configuration for APPLE computers:\n")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -pipe -Wall -std=c++11 -stdlib=libc++")
