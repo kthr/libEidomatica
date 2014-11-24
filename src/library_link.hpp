@@ -8,12 +8,6 @@
 #ifndef LIBRARY_LINK_HPP_
 #define LIBRARY_LINK_HPP_
 
-
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "templates/image.hpp"
 #include "mathlink.h"
 #include "WolframLibrary.h"

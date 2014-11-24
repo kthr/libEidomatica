@@ -29,13 +29,12 @@ extern "C"
 class HDF5Reader
 {
 	public:
-		HDF5Reader();
 		HDF5Reader(MLINK mlp, std::string file_name);
 		virtual ~HDF5Reader();
 
 		void readAnnotations(std::vector<std::string> &object_names);
 		void readData(std::vector<std::string> &dataset_names);
-		void readNames(std::vector<std::string> &names, std::vector<std::string> &roots, int depth);
+		void readNames(std::vector<std::string> &roots, int depth, std::vector<std::string> *names);
 
 	private:
 		void readIntegerData(MLINK loop, std::string dataset_name, const H5D &dataset);
@@ -43,6 +42,7 @@ class HDF5Reader
 		void readStringData(MLINK loop, std::string dataset_name, const H5D &dataset);
 
 		std::string file_name = "";
+		H5F file;
 		MLINK mlp = nullptr;
 };
 

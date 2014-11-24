@@ -16,12 +16,7 @@
 namespace elib
 {
 
-HDF5Reader::HDF5Reader()
-{
-
-}
-
-HDF5Reader::HDF5Reader(MLINK mlp, std::string file_name) : file_name(file_name), mlp(mlp)
+HDF5Reader::HDF5Reader(MLINK mlp, std::string file_name) : file_name(file_name), file(H5F(file_name)), mlp(mlp)
 {
 }
 
@@ -58,8 +53,6 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 		{
 			throw H5Exception("Unable to open loopback link!");
 		}
-
-		H5F file(file_name);
 
 		if(n>1)
 		{
@@ -108,7 +101,7 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 	{
 		MLClose(loopback);
 		MLDeinitialize(env);
-		throw &e;
+		throw e;
 	}
 
 	/* Transfer data from loopback to actual Mathematica link */
@@ -136,7 +129,6 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 	}
 	try
 	{
-		H5F file = H5F(file_name.c_str());
 		if(dataset_names.size() > 1)
 		{
 			MLPutFunction(loopback, "List", dataset_names.size());
@@ -191,11 +183,10 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 	MLClose(loopback);
 	MLDeinitialize(env);
 }
-void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::string> &roots, int depth)
+void HDF5Reader::readNames(std::vector<std::string> &roots, int depth, std::vector<std::string> *names)
 {
 	try
 	{
-		H5F file = H5F(file_name.c_str());
 		if(depth == 0)
 		{
 			for (std::string root : roots)
@@ -218,7 +209,7 @@ void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::str
 				{
 					tmp[i] = (dir / boost::filesystem::path(tmp[i])).string();
 				}
-				names.insert(names.end(), tmp.begin(), tmp.end());
+				names->insert(names->end(), tmp.begin(), tmp.end());
 			}
 		}
 		else if(depth >= 1)
@@ -239,9 +230,9 @@ void HDF5Reader::readNames(std::vector<std::string> &names, std::vector<std::str
 				}
 				if(depth>1)
 				{
-					readNames(names, tmp, depth-1);
+					readNames(tmp, depth-1, names);
 				}
-				names.insert(names.end(), tmp.begin(), tmp.end());
+				names->insert(names->end(), tmp.begin(), tmp.end());
 			}
 		}
 		else

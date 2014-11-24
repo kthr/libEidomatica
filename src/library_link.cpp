@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "alg/density.hpp"
 #include "alg/graphcut.hpp"
@@ -19,8 +20,6 @@
 #include "revision.hpp"
 #include "templates/image.hpp"
 #include "templates/tensor.hpp"
-
-using namespace std;
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
@@ -305,32 +304,30 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 		return LIBRARY_NO_ERROR;
 	}
 
-	elib::HDF5Reader reader;
 	try
 	{
-		reader = elib::HDF5Reader(mlp, std::string(file_name));
+		elib::HDF5Reader reader = elib::HDF5Reader(mlp, std::string(file_name));
 		switch (type)
 		{
 			case 0: /* read annotations */
+			{
                 reader.readAnnotations(roots);
-                MLEndPacket(mlp);
+			}
 				break;
 			case 1:
 			{
 				reader.readData(roots);
-				MLEndPacket(mlp);
 			}
 				break;
 			case 2: /* read names */
 			{
-				vector<string> names;
-				reader.readNames(names, roots, depth);
-				MLPutFunction(mlp, "List", names.size());
-				for (string i : names)
+				std::unique_ptr<std::vector<std::string>> names = std::unique_ptr<std::vector<std::string>>(new std::vector<std::string>);
+				reader.readNames(roots, depth, names.get());
+				MLPutFunction(mlp, "List", names->size());
+				for (std::string i : *names)
 				{
 					MLPutString(mlp, i.c_str());
 				}
-				MLEndPacket(mlp);
 			}
 				break;
 			default:
@@ -351,7 +348,6 @@ DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 
 	MLReleaseString(mlp, file_name);
 	MLReleaseString(mlp, root);
-	MLEndPacket(mlp);
 	return LIBRARY_NO_ERROR;
 }
 
