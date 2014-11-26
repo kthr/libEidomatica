@@ -223,4 +223,10 @@ H5O::~H5O()
     throw H5Exception("H5Oclose failed");
 }
 
+int H5O::getNumAttrs() const
+{
+  H5O_info_t object_info;
+  H5Oget_info(id, &object_info);
+  return object_info.num_attrs;
+}
 } /* end namespace elib */

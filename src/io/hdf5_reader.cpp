@@ -36,7 +36,7 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 
 	/* Create a loopback link to store the list until we are sure it can be fully
 	 filled. This way if something fails we can abort and send $Failed back. */
-	MLINK loopback = NULL;
+	MLINK loopback = nullptr;
 	MLENV env;
 	int error;
 
@@ -62,40 +62,15 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 		/* Loop over all requested datasets */
 		for (std::string dataset_name : object_names)
 		{
-			try{
-				hid_t object;
-				if (!((object = H5Oopen(file.getId(), dataset_name.c_str(), H5P_DEFAULT)) > 0))
-					throw(H5Exception("Could not open object in " + dataset_name));
-				int nAttrs;
-				switch (H5Iget_type(object))
-				{
-					case H5I_GROUP:
-					{
-						H5G group(file, dataset_name);
-						nAttrs = group.getNumAttrs();
-						MLPutFunction(loopback, "List", nAttrs);
-						H5Aiterate(group.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
-					}
-						break;
-					case H5I_DATASET:
-					{
-						H5D dataset(file, dataset_name);
-						nAttrs = dataset.getNumAttrs();
-						MLPutFunction(loopback, "List", nAttrs);
-						H5Aiterate(dataset.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
-					}
-						break;
-					default:
-						throw(H5Exception("Reading annotations only supported for Datasets and Groups!"));
-						break;
-				}
-				H5Oclose(object);
-			}
-			catch(H5Exception &e)
-			{
-				throw H5Exception("Failed to read annotation in dataset " + dataset_name + ":" + e.what());
-			}
+			H5O object = H5O(file, dataset_name);
+			int nAttrs = object.getNumAttrs();
+			MLPutFunction(loopback, "List", nAttrs);
+			H5Aiterate(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, 0, put_dataset_attribute, &loopback);
 		}
+		/* Transfer data from loopback to actual Mathematica link */
+		MLTransferToEndOfLoopbackLink(mlp, loopback);
+		MLClose(loopback);
+		MLDeinitialize(env);
 	}
 	catch (H5Exception &e)
 	{
@@ -103,11 +78,6 @@ void HDF5Reader::readAnnotations(std::vector<std::string> &object_names)
 		MLDeinitialize(env);
 		throw e;
 	}
-
-	/* Transfer data from loopback to actual Mathematica link */
-	MLTransferToEndOfLoopbackLink(mlp, loopback);
-	MLClose(loopback);
-	MLDeinitialize(env);
 }
 
 void HDF5Reader::readData(std::vector<std::string> &dataset_names)
@@ -183,6 +153,7 @@ void HDF5Reader::readData(std::vector<std::string> &dataset_names)
 	MLClose(loopback);
 	MLDeinitialize(env);
 }
+
 void HDF5Reader::readNames(std::vector<std::string> &roots, int depth, std::vector<std::string> *names)
 {
 	try
@@ -222,7 +193,7 @@ void HDF5Reader::readNames(std::vector<std::string> &roots, int depth, std::vect
 				}
 				H5O object = H5O(file, root);
 				std::vector<std::string> tmp;
-				H5Literate(object.getId(),  H5_INDEX_NAME , H5_ITER_NATIVE, NULL, put_link_name, &tmp);
+				H5Literate(object.getId(), H5_INDEX_NAME, H5_ITER_NATIVE, NULL, put_link_name, &tmp);
 				boost::filesystem::path dir(root);
 				for (int i = 0; i < tmp.size(); ++i)
 				{
@@ -426,19 +397,18 @@ herr_t put_link_name(hid_t g_id, const char *name, const H5L_info_t *info, void 
 
 herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A_info_t *ainfo, void *op_data)
 {
-	MLINK loopback = *((MLINK*) op_data);
-
-	H5A attr(location_id, attr_name);
-
-	H5T datatype(attr);
-	H5T_class_t typeclass = H5Tget_class(datatype.getId());
-	size_t size = datatype.getSize();
-
-	MLPutFunction(loopback, "Rule", 2);
-	MLPutString(loopback, attr_name);
-
 	try
 	{
+		MLINK loopback = *((MLINK*) op_data);
+		H5A attr(location_id, attr_name);
+
+		H5T datatype(attr);
+		H5T_class_t typeclass = H5Tget_class(datatype.getId());
+		size_t size = datatype.getSize();
+
+		MLPutFunction(loopback, "Rule", 2);
+		MLPutString(loopback, attr_name);
+
 		if ((typeclass == H5T_INTEGER) || (typeclass == H5T_FLOAT))
 		{
 			H5S dataspace(attr);
@@ -451,17 +421,12 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 				nElems *= dims[k];
 			}
 
-			std::vector<long int> idims(rank);
-			for (int k = 0; k < rank; k++)
-			{
-				idims[k] = dims[k];
-			}
-			std::vector<long int> long_dim(rank);
-			std::vector<int> int_dim(rank);
+			std::vector<long int> long_dimensions(rank);
+			std::vector<int> int_dimensions(rank);
 			for (int j = 0; j < rank; j++)
 			{
-				long_dim[j] = dims[j];
-				int_dim[j] = dims[j];
+				long_dimensions[j] = dims[j];
+				int_dimensions[j] = dims[j];
 			}
 
 			if (typeclass == H5T_INTEGER)
@@ -471,24 +436,24 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 					std::vector<short> data(nElems);
 					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
 					{
-						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+						throw H5Exception("Failed to read data for dataset '" + std::string(attr_name) + "'!");
 					}
 					if (rank == 0)
 						MLPutInteger16(loopback, data[0]);
 					else
-						MLPutInteger16Array(loopback, data.data(), int_dim.data(), 0, rank);
+						MLPutInteger16Array(loopback, data.data(), int_dimensions.data(), 0, rank);
 				}
 				else if(size == 4)
 				{
 					std::vector<int> data(nElems);
 					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
 					{
-						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name) + "'!");
 					}
 					if (rank == 0)
 						MLPutInteger(loopback, data[0]);
 					else
-						MLPutIntegerArray(loopback, data.data(), long_dim.data(), 0, rank);
+						MLPutIntegerArray(loopback, data.data(), long_dimensions.data(), 0, rank);
 
 				}
 				else if(size == 8)
@@ -496,16 +461,16 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 					std::vector<mlint64> data(nElems);
 					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
 					{
-						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+						throw H5Exception("Failed to read data for dataset " + std::string(attr_name) + "'!");
 					}
 					if (rank == 0)
 						MLPutInteger64(loopback, data[0]);
 					else
-						MLPutInteger64Array(loopback, data.data(), int_dim.data(), 0, rank);
+						MLPutInteger64Array(loopback, data.data(), int_dimensions.data(), 0, rank);
 				}
 				else
 				{
-					throw H5Exception("Bitdepth not supported for " + std::string(attr_name) + "!");
+					throw H5Exception("Bitdepth not supported for '" + std::string(attr_name) + "'!");
 				}
 
 			}
@@ -516,28 +481,28 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 					std::vector<float> data(nElems);
 					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
 					{
-						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+						throw H5Exception("Failed to read data for dataset '" + std::string(attr_name)  + "'!");
 					}
 					if (rank == 0)
 						MLPutReal32(loopback, data[0]);
 					else
-						MLPutReal32Array(loopback, data.data(), int_dim.data(), 0, rank);
+						MLPutReal32Array(loopback, data.data(), int_dimensions.data(), 0, rank);
 				}
 				else if(size == 8)
 				{
 					std::vector<double> data(nElems);
 					if (H5Aread(attr.getId(), datatype.getNativeId(), (void *) data.data()) < 0)
 					{
-						throw H5Exception("Failed to read data for dataset " + std::string(attr_name));
+						throw H5Exception("Failed to read data for dataset '" + std::string(attr_name) + "'!");
 					}
 					if (rank == 0)
 						MLPutReal64(loopback, data[0]);
 					else
-						MLPutReal64Array(loopback, data.data(), int_dim.data(), 0, rank);
+						MLPutReal64Array(loopback, data.data(), int_dimensions.data(), 0, rank);
 				}
 				else
 				{
-					throw H5Exception("Bitdepth not supported for " + std::string(attr_name) + "!");
+					throw H5Exception("Bitdepth not supported for '" + std::string(attr_name) + "'!");
 				}
 			}
 		}
@@ -552,7 +517,7 @@ herr_t put_dataset_attribute(hid_t location_id, const char *attr_name, const H5A
 		}
 		else
 		{
-			throw H5Exception("Datatype not supported for " + std::string(attr_name) + "!");
+			throw H5Exception("Datatype not supported for '" + std::string(attr_name) + "'!");
 		}
     }
     catch(H5Exception &e)
