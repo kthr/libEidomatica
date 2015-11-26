@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(libEidomatica)
+set(CMAKE_MACOSX_RPATH 1)
 
 set(SOURCES 
   lib/gco/maxflow.cpp
@@ -39,16 +40,18 @@ find_package(Boost REQUIRED COMPONENTS filesystem system)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
 find_package(Mathematica)
 find_package(PNG REQUIRED)
-find_package(HDF5 REQUIRED  COMPONENTS CXX C)
+find_package(HDF5 REQUIRED COMPONENTS CXX C)
+message("Include directories: ${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS} ${PNG_INCLUDE_DIR}")
+message("Libraries: ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARY} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES}")
 if(${Boost_FOUND} AND ${Mathematica_WolframLibrary_FOUND} AND ${HDF5_FOUND})
-    include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
+    include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS} ${PNG_INCLUDE_DIR})
     target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARIES} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES})
     set_target_properties(Eidomatica PROPERTIES COMPILE_DEFINITIONS "GLM_FORCE_RADIANS")
 endif()
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to 'Release' as none was specified.")
+  message(STATUS "No build type specified, setting build type to 'Release'!")
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
