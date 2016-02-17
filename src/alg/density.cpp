@@ -154,7 +154,6 @@ glm::vec3 Density::inverseBonne(glm::vec3 p, double standard_parallel, double ce
 	double 	tmp = cot(standard_parallel),
 			rho = sgn(standard_parallel)*sqrt(pow(p.x,2)+pow(tmp-p.y,2)),
 			latitude = tmp+standard_parallel-rho;
-	std::cout << "inverse bonne: " << p.x << "," << p.y << "," << p.z << " " << central_meridian+rho*atan2(p.x,(tmp-p.y))/cos(latitude) << "," << latitude << "," << p.z << std::endl;
 	return glm::vec3(central_meridian+rho*atan2(p.x,(tmp-p.y))/cos(latitude), latitude, p.z);
 }
 
