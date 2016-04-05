@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "alg/alpha_shapes.hpp"
 #include "alg/density.hpp"
 #include "alg/graphcut.hpp"
 #include "alg/multi_label_graphcut.hpp"
@@ -20,6 +21,36 @@
 #include "revision.hpp"
 #include "templates/image.hpp"
 #include "templates/tensor.hpp"
+
+DLLEXPORT int llAlphaShape(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	using elib::Tensor;
+	using elib::AlphaShapes;
+	std::vector<float> vec;
+	MTensor segments;
+
+	std::shared_ptr<Tensor<float>> points;
+	float alpha;
+	bool mode;
+
+//	int debug = 1;
+//	while(debug);
+
+	points = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData, MArgument_getMTensor(input[0]));
+	alpha = MArgument_getReal(input[1]);
+	mode = MArgument_getBoolean(input[2]);
+
+	AlphaShapes as(points, alpha, mode);
+	vec = as.getSegments();
+
+	mint dimensions = vec.size();
+	libData->MTensor_new(MType_Real, 1, &dimensions, &segments);
+	std::copy(vec.begin(), vec.end(), libData->MTensor_getRealData(segments));
+	MArgument_setMTensor(output, segments);
+
+
+	return LIBRARY_NO_ERROR;
+}
 
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
 {
