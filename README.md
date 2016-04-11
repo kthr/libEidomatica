@@ -29,5 +29,6 @@ cd build
 Finally install the library to your local Mathematica applications directory 
 with
 ```bash
+cmake ..
 make install
 ```
