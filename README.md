@@ -18,7 +18,7 @@ Installation
 --------------
 First clone the repository with
 ```bash
-git clone git@gitlab.com:kth/libEidomatica.git libEidomatica
+git clone https://gitlab.com/kth/libEidomatica.git libEidomatica
 ```
 Then create a directory "build" inside the cloned repository
 ```bash
