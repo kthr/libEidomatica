@@ -12,6 +12,7 @@ set(SOURCES
   lib/maxflow/maxflow.cpp
 #	src/alg/connected_components.cpp
   src/alg/alpha_shapes.cpp
+  src/alg/delaunay_triangulation.cpp
   src/alg/density.cpp
   src/alg/graphcut.cpp
 	src/alg/multi_label_graphcut.cpp

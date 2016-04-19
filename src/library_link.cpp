@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "alg/alpha_shapes.hpp"
+#include "alg/delaunay_triangulation.hpp"
 #include "alg/density.hpp"
 #include "alg/graphcut.hpp"
 #include "alg/multi_label_graphcut.hpp"
@@ -42,6 +43,31 @@ DLLEXPORT int llAlphaShape(WolframLibraryData libData, mint nargs, MArgument* in
 
 	AlphaShapes as(points, alpha, mode);
 	vec = as.getSegments();
+
+	mint dimensions = vec.size();
+	libData->MTensor_new(MType_Real, 1, &dimensions, &segments);
+	std::copy(vec.begin(), vec.end(), libData->MTensor_getRealData(segments));
+	MArgument_setMTensor(output, segments);
+
+
+	return LIBRARY_NO_ERROR;
+}
+
+DLLEXPORT int llDelaunay(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	using elib::Tensor;
+	using elib::DelaunayTriangulation;
+	std::vector<float> vec;
+	MTensor segments;
+	std::shared_ptr<Tensor<float>> points;
+
+//	int debug = 1;
+//	while(debug);
+
+	points = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData, MArgument_getMTensor(input[0]));
+
+	DelaunayTriangulation dt(points);
+	vec = dt.getTriangulation();
 
 	mint dimensions = vec.size();
 	libData->MTensor_new(MType_Real, 1, &dimensions, &segments);

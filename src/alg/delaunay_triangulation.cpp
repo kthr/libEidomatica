@@ -25,9 +25,8 @@ namespace elib
 	std::vector<float> DelaunayTriangulation::getTriangulation()
 	{
 		typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-		typedef CGAL::Projection_traits_xy_3<K>  Gt;
-		typedef CGAL::Delaunay_triangulation_2<Gt> Delaunay;
-		typedef K::Point_2 Point;
+		typedef CGAL::Delaunay_triangulation_2<K> Delaunay;
+		typedef K::Point_2   Point;
 
 		std::list<Point> points;
 		float *data = tensor->getData();
@@ -38,6 +37,18 @@ namespace elib
 		}
 
 		Delaunay dt(points.begin(), points.end());
+
+		std::vector<float> face_vertices;
+		for(auto fi = dt.finite_faces_begin(); fi != dt.finite_faces_end(); fi++)
+		{
+			face_vertices.push_back(fi->vertex(0)->point().hx());
+			face_vertices.push_back(fi->vertex(0)->point().hy());
+			face_vertices.push_back(fi->vertex(1)->point().hx());
+			face_vertices.push_back(fi->vertex(1)->point().hy());
+			face_vertices.push_back(fi->vertex(2)->point().hx());
+			face_vertices.push_back(fi->vertex(2)->point().hy());
+		}
+		return face_vertices;
 	}
 
 } /* namespace elib */
