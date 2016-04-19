@@ -9,6 +9,7 @@
 #define ALPHA_SHAPES_H_
 
 #include <algorithm>
+#include <vector>
 
 #include "templates/tensor.hpp"
 
