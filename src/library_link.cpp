@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "alg/alpha_shapes.hpp"
+#include "alg/bounding_volumes.hpp"
 #include "alg/delaunay_triangulation.hpp"
 #include "alg/density.hpp"
 #include "alg/graphcut.hpp"
@@ -43,6 +44,36 @@ DLLEXPORT int llAlphaShape(WolframLibraryData libData, mint nargs, MArgument* in
 
 	AlphaShapes as(points, alpha, mode);
 	vec = as.getSegments();
+
+	mint dimensions = vec.size();
+	libData->MTensor_new(MType_Real, 1, &dimensions, &segments);
+	std::copy(vec.begin(), vec.end(), libData->MTensor_getRealData(segments));
+	MArgument_setMTensor(output, segments);
+
+
+	return LIBRARY_NO_ERROR;
+}
+
+DLLEXPORT int llBoundingVolumes(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	using elib::Tensor;
+	using elib::BoundingVolumes;
+	std::vector<double> vec;
+	MTensor segments;
+
+	std::shared_ptr<Tensor<float>> points;
+	int volume_type;
+	bool mode;
+
+//	int debug = 1;
+//	while(debug);
+
+	points = elib::LibraryLinkUtilities<float>::llGetRealTensor(libData, MArgument_getMTensor(input[0]));
+	volume_type = MArgument_getInteger(input[1]);
+	mode = MArgument_getBoolean(input[2]);
+
+	BoundingVolumes bv(points, volume_type, mode);
+	vec = bv.getBoundary();
 
 	mint dimensions = vec.size();
 	libData->MTensor_new(MType_Real, 1, &dimensions, &segments);

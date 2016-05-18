@@ -19,6 +19,7 @@ extern "C"
 #endif
 
 DLLEXPORT int llAlphaShape(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
+DLLEXPORT int llBoundingVolumes(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llDelaunay(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llGraphCut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
