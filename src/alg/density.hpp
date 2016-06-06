@@ -21,6 +21,8 @@ class Density
 {
 	public:
 		static elib::Tensor<double>* calculateDensity(elib::Tensor<double> &points, elib::Parameters &params);
+		static elib::Tensor<double>* calculateFeatureMap(elib::Tensor<double> &points, elib::Tensor<double> &features, elib::Parameters &params);
+
 		enum class density_type {BONNE, CARTESIAN, MERCATOR};
 	private:
 		static inline glm::vec3 toPolar(glm::vec2 point, float radius, float lateral_projection_range, const int* dimension);

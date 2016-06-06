@@ -321,6 +321,48 @@ DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input
 	return LIBRARY_NO_ERROR;
 }
 
+DLLEXPORT int llFeatureMap(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output)
+{
+	elib::Parameters params;
+	std::shared_ptr<elib::Tensor<double>> points, features;
+	elib::Tensor<double> *result;
+	MTensor density;
+	std::shared_ptr<elib::Tensor<int>> dimensions, original_dimensions;
+
+//	int debug = 1;
+//	while(debug);
+
+	points = elib::LibraryLinkUtilities<double>::llGetRealTensor(libData, MArgument_getMTensor(input[0]));
+	features = elib::LibraryLinkUtilities<double>::llGetRealTensor(libData, MArgument_getMTensor(input[1]));
+	dimensions = elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData, MArgument_getMTensor(input[2]));
+	params.addParameter("Dimensions", *dimensions);
+	original_dimensions = elib::LibraryLinkUtilities<int>::llGetIntegerTensor(libData, MArgument_getMTensor(input[3]));
+	params.addParameter("OriginalDimensions", *original_dimensions);
+	params.addParameter("Rank", 2);
+	params.addParameter("Radius", MArgument_getReal(input[4]));
+	params.addParameter("LateralProjectionRange", MArgument_getReal(input[5]));
+	params.addParameter("BandWidth", MArgument_getReal(input[6]));
+	params.addParameter("Type", int(MArgument_getInteger(input[7])));
+	params.addParameter("CentralMeridian", MArgument_getReal(input[8]));
+	params.addParameter("StandardParallel", MArgument_getReal(input[9]));
+
+	result = elib::Density::calculateFeatureMap(*points, *features, params);
+	if (result == nullptr)
+	{
+		return LIBRARY_FUNCTION_ERROR;
+	}
+
+	mint dims[result->getRank()];
+	std::copy(result->getDimensions()->begin(), result->getDimensions()->end(), dims);
+	libData->MTensor_new(MType_Real, result->getRank(), dims, &density);
+	std::copy(result->getData(), result->getData() + result->getFlattenedLength(),
+			libData->MTensor_getRealData(density));
+	MArgument_setMTensor(output, density);
+
+	delete result;
+	return LIBRARY_NO_ERROR;
+}
+
 DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp)
 {
 	const char *file_name;

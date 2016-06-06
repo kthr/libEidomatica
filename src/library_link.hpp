@@ -26,6 +26,7 @@ DLLEXPORT int llGraphcutDistribution(WolframLibraryData libData, mint nargs, MAr
 DLLEXPORT int llMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llAdaptiveMultiLabelGraphcut(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llDensity(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
+DLLEXPORT int llFeatureMap(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 DLLEXPORT int llHDF5Import(WolframLibraryData libData, MLINK mlp);
 DLLEXPORT int llVersion(WolframLibraryData libData, mint nargs, MArgument* input, MArgument output);
 void sendMessage(WolframLibraryData libData, const char *function_name, const char *message);

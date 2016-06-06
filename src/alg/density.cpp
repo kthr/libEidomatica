@@ -131,6 +131,138 @@ Tensor<double>* Density::calculateDensity(elib::Tensor<double> &points, elib::Pa
 	return density;
 }
 
+Tensor<double>* Density::calculateFeatureMap(elib::Tensor<double> &points, elib::Tensor<double> &features, elib::Parameters &params)
+{
+	std::vector<glm::ivec2> coordinates;
+	std::vector<glm::vec3> polar_coordinates, polar_points;
+	glm::vec3 p;
+	glm::ivec2 c;
+
+	int rank, type;
+	const Tensor<int> *dimensions, *original_dimensions;
+	double radius, lateral_projection_range, band_width, central_meridian, standard_parallel;
+	if(
+		elib::isnan(rank = params.getIntegerParameter("Rank")) ||
+		(dimensions = params.getIntegerTensorParameter("Dimensions")) == nullptr ||
+		(original_dimensions = params.getIntegerTensorParameter("OriginalDimensions")) == nullptr ||
+		elib::isnan(radius = params.getDoubleParameter("Radius")) ||
+		elib::isnan(lateral_projection_range = params.getDoubleParameter("LateralProjectionRange")) ||
+		elib::isnan(band_width = params.getDoubleParameter("BandWidth")) ||
+		elib::isnan(type = params.getIntegerParameter("Type")) ||
+		elib::isnan(central_meridian = params.getDoubleParameter("CentralMeridian")) ||
+		elib::isnan(standard_parallel = params.getDoubleParameter("StandardParallel"))
+	)
+	{
+		return nullptr;
+	}
+	Tensor<double> density = Tensor<double>(rank, dimensions->getData());
+	Tensor<double> *feature_tensor = new Tensor<double>(rank, dimensions->getData());
+	double *tensor_data = density.getData();
+	double *feature_data = feature_tensor->getData();
+	int *dims = const_cast<Tensor<int>* >(dimensions)->getData();
+	int *original_dims = const_cast<Tensor<int>* >(original_dimensions)->getData();
+
+
+	if(rank == 2)
+	{
+		double* point_data = points.getData();
+		switch(type)
+		{
+			case static_cast<int>(density_type::BONNE):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dims));
+				}
+				for(int j = 0; j < dims[1]; ++j)
+				{
+					for (int i = 0; i < dims[0]; ++i)
+					{
+						coordinates.push_back(glm::ivec2(i, j));
+						p = glm::vec3((double(i)/double(dims[0]))*M_PI*2-M_PI, (double(j)/double(dims[1]))*M_PI*2-M_PI,radius);
+						polar_coordinates.push_back(inverseBonne(p, standard_parallel, central_meridian));
+					}
+				}
+				for(unsigned int i=0; i<polar_coordinates.size(); ++i)
+				{
+					p = polar_coordinates[i];
+					c = coordinates[i];
+					if(fabs(p.x) <= M_PI && fabs(p.y) <= M_PI_2)
+					{
+						for(unsigned int j=0; j<polar_points.size(); ++j)
+						{
+							if(greatCircleDistance(p+glm::vec3(M_PI, M_PI_2, 0), polar_points[j]) <= band_width)
+							{
+								tensor_data[c.x + c.y*dims[0]] += 1;
+								feature_data[c.x + c.y*dims[0]] += features.get(j);
+							}
+						}
+					}
+					else
+					{
+						tensor_data[c.x + c.y*dims[0]] = 0;
+					}
+				}
+				break;
+			case static_cast<int>(density_type::CARTESIAN):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(glm::vec3(point_data[k]/original_dims[0],point_data[k+1]/original_dims[1],0));
+				}
+				for(int j=0; j<dims[1]; ++j)
+				{
+					for(int i=0; i<dims[0]; ++i)
+					{
+						p = glm::vec3(i/dims[0],j/dims[1],0);
+						for(auto k=0; k < polar_points.size(); ++k)
+							if(std::sqrt(glm::l2Norm(p-polar_points[k])) <= band_width)
+							{
+								tensor_data[i + j*dims[0]] += 1;
+								feature_data[i + j*dims[0]] += features.get(j);
+							}
+					}
+				}
+				break;
+			case static_cast<int>(density_type::MERCATOR):
+				for(int k=0; k<points.getFlattenedLength(); k+=2)
+				{
+					polar_points.push_back(toPolar(glm::vec2(point_data[k],point_data[k+1]), radius, lateral_projection_range, original_dims));
+				}
+				for(int j=0; j<dims[1]; ++j)
+				{
+					for(int i=0; i<dims[0]; ++i)
+					{
+						coordinates.push_back(glm::ivec2(i,j));
+						polar_coordinates.push_back(toPolar(glm::vec2(i,j), radius, lateral_projection_range, dims));
+					}
+				}
+				for(unsigned int i=0; i<polar_coordinates.size(); ++i)
+				{
+					for(unsigned int j=0; j<polar_points.size(); ++j)
+					{
+						c = coordinates[i];
+						if(greatCircleDistance(polar_coordinates[i],polar_points[j]) <= band_width)
+						{
+							tensor_data[c.x + c.y*dims[0]] += 1;
+							feature_data[c.x + c.y*dims[0]] += features.get(j);
+						}
+					}
+				}
+				break;
+			default:
+				feature_tensor=nullptr;
+				break;
+		}
+	}
+	if(feature_tensor != nullptr)
+	{
+		for(int i=0; i< feature_tensor->getFlattenedLength(); ++i)
+		{
+			feature_data[i] /= fmax(1, tensor_data[i]); //prevent division by 0
+		}
+	}
+	return feature_tensor;
+}
+
 inline glm::vec3 Density::toPolar(glm::vec2 point, float radius, float lateral_projection_range, const int* dimension)
 {
 	return glm::vec3((point.x*2*M_PI)/dimension[0],asin(tanh(lateral_projection_range*(-0.5+point.y/dimension[1])))+M_PI_2,radius);
