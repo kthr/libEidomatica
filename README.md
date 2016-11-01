@@ -11,7 +11,7 @@ First install the following dependencies:
 
 ### On Mac (via macports) install
 ```bash
-sudo port install hdf5 +threadsafe +cxx cgal boost
+sudo port install boost cgal glm hdf5 +threadsafe +cxx
 ```
 
 Installation
