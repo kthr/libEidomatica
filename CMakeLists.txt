@@ -26,8 +26,8 @@ set(SOURCES
 )
 
 include_directories(
-    lib/
     src/
+    lib/
 )
 
 add_custom_target(
