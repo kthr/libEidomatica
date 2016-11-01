@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8.4)
 project(libEidomatica)
 set(CMAKE_MACOSX_RPATH 1)
 
-#add_subdirectory(src/cgal)
-
 set(SOURCES 
   lib/gco/maxflow.cpp
   lib/gco/GCoptimization.cpp
@@ -47,10 +45,12 @@ set(Mathematica_USE_LIBCXX_LIBRARIES OFF)
 find_package(Mathematica)
 find_package(PNG REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS CXX C)
-set(CGAL_LIBRARIES /opt/local/lib/libCGAL.dylib /opt/local/lib/libCGAL_Core.dylib /opt/local/lib/libgmp.dylib)
+if(APPLE)
+  set(CGAL_LIBRARIES /opt/local/lib/libCGAL.dylib /opt/local/lib/libCGAL_Core.dylib /opt/local/lib/libgmp.dylib)
+endif()
 
-message("Include directories: ${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS} ${PNG_INCLUDE_DIR}")
-message("Libraries: ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARY} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES} ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES}")
+#message("Include directories: ${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS} ${PNG_INCLUDE_DIR}")
+#message("Libraries: ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARY} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES} ${CGAL_LIBRARIES}")
 if(${Boost_FOUND} AND ${Mathematica_WolframLibrary_FOUND} AND ${HDF5_FOUND})
     include_directories(${Boost_INCLUDE_DIRS} ${Mathematica_WolframLibrary_INCLUDE_DIR} ${Mathematica_MathLink_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS} ${PNG_INCLUDE_DIR})
     target_link_libraries(Eidomatica ${Boost_LIBRARIES} ${Mathematica_MathLink_LIBRARIES} ${PNG_LIBRARY} ${HDF5_CXX_LIBRARIES} ${CGAL_LIBRARIES})
