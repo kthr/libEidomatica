@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 2.8.4)
 project(libEidomatica)
 set(CMAKE_MACOSX_RPATH 1)
 
+
 set(SOURCES 
   lib/gco/maxflow.cpp
   lib/gco/GCoptimization.cpp
   lib/gco/LinkedBlockList.cpp
   lib/maxflow/graph.cpp
   lib/maxflow/maxflow.cpp
-#	src/alg/connected_components.cpp
+	src/alg/connected_components.cpp
   src/alg/alpha_shapes.cpp
   src/alg/bounding_volumes.cpp
   src/alg/delaunay_triangulation.cpp
@@ -17,7 +18,7 @@ set(SOURCES
 	src/alg/multi_label_graphcut.cpp
 	src/io/hdf5_reader.cpp
 	src/io/hdf5_wrapper.cpp
-  lib/gco/graph.cpp
+ lib/gco/graph.cpp
 	src/utilities/parameters.cpp
 	src/utilities/utilities.cpp
   src/library_link.cpp
@@ -33,7 +34,7 @@ add_custom_target(
     COMMAND /bin/bash version.sh
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-add_library(Eidomatica SHARED ${SOURCES})
+add_library(Eidomatica SHARED ${SOURCES} ${LIB_SOURCES})
 add_dependencies(Eidomatica Version)
 
 set(Boost_USE_STATIC_LIBS OFF) 

@@ -46,7 +46,7 @@ class ConnectedComponents
 		}
 
 		template<typename Point>
-		inline static void addNeigbours(std::queue<Point> *indices, std::vector<Point> *neighbours, Point index, int rank, int *dimensions)
+		inline static void addNeigbours(std::queue<Point> *indices, std::vector<Point> *neighbours, Point index, int rank, const std::vector<int> &dimensions)
 		{
 			typename std::vector<Point>::iterator it;
 			Point neighbour;

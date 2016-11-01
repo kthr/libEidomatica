@@ -33,7 +33,7 @@ Image<int> ConnectedComponents::getComponents(Image<int> image)
 {
 	Image<int> tmp_image = Image<int>(image);
 	int *tmp_data = tmp_image.getData();
-	Image<int> label_image = Image<int>(image.getRank(), image.getDimensions(), 16, 1);
+	Image<int> label_image = Image<int>(image.getRank(), *image.getDimensions(), 16, 1);
 	int *label_data = label_image.getData();
 	int width = image.getWidth(),
 		height = image.getHeight(),
@@ -69,7 +69,7 @@ Image<int> ConnectedComponents::getComponents(Image<int> image)
 					tmp_data[pixel] = 0;
 					label_data[pixel] = label;
 					index = glm::ivec3(i,j,k);
-					addNeigbours(&indices, neighbours, index, image.getRank(), image.getDimensions());
+					addNeigbours(&indices, neighbours, index, image.getRank(), *image.getDimensions());
 					while(!indices.empty())
 					{
 						index = indices.front();
@@ -79,7 +79,7 @@ Image<int> ConnectedComponents::getComponents(Image<int> image)
 						{
 							tmp_data[pixel] = 0;
 							label_data[pixel] = label;
-							addNeigbours(&indices, neighbours, index,  image.getRank(), image.getDimensions());
+							addNeigbours(&indices, neighbours, index,  image.getRank(), *image.getDimensions());
 						}
 					}
 					label++;
