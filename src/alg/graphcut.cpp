@@ -78,7 +78,7 @@ Image<short>* graphcut(Image<int> &input_image, Parameters &parameters)
 
 				// add likelihood
 				value = input_image_data[nodeCount];
-				energy->add_term1(varx[nodeCount], fabsf(value - bg)/maxIntensity, fabsf(value - fg)/maxIntensity);
+				energy->add_term1(varx[nodeCount], (1-lambda)*fabsf(value - bg)/maxIntensity, (1-lambda)*fabsf(value - fg)/maxIntensity);
 			}
 		}
 	}
@@ -191,7 +191,7 @@ void graphcut(std::unique_ptr<Image<short>> &binary_image, Image<int> &input_ima
 
 				// add likelihood
 				value = input_image_data[nodeCount];
-				energy->add_term1(varx[nodeCount], 1.-background->get(value), 1.-foreground->get(value));
+				energy->add_term1(varx[nodeCount], (1-lambda)*(1.-background->get(value)), (1-lambda)*(1.-foreground->get(value)));
 			}
 		}
 	}
