@@ -25,7 +25,7 @@ First install the following dependencies:
     [hdf5](https://www.hdfgroup.org/solutions/hdf5/)
     [boost](https://github.com/boostorg/boost)
 
-### On Mac (via macports) install
+#### On Mac (via macports) install
 ```bash
 sudo port install boost cgal glm hdf5 +threadsafe +cxx
 ```
