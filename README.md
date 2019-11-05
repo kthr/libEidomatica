@@ -1,3 +1,19 @@
+Licensing information
+===============
+The code of this library is build for research purposes and published under the MIT licence. It is part of the [Eidomatica](https://github.com/kthr/Eidomatica) Mathematica package. Third party algorithms/components in the lib directory have their own licence though. Especially the gco algorithm, is only allowed to be redistributed for research purposes.
+
+Relevant publications:
+
+[http://www.csd.uwo.ca/~yuri/Papers/pami04.pdf](http://www.csd.uwo.ca/~yuri/Papers/pami04.pdf)
+
+[http://www.csd.uwo.ca/faculty/olga/Papers/pami01_final.pdf](http://www.csd.uwo.ca/faculty/olga/Papers/pami01_final.pdf)
+
+[http://www.csd.uwo.ca/~yuri/Papers/pami04.pdf](http://www.csd.uwo.ca/~yuri/Papers/pami04.pdf)
+
+[http://www.cs.ucl.ac.uk/staff/V.Kolmogorov/papers/KZ-PAMI-graph_cuts.pdf](http://www.cs.ucl.ac.uk/staff/V.Kolmogorov/papers/KZ-PAMI-graph_cuts.pdf)
+[http://www.csd.uwo.ca/~yuri/Papers/ijcv10_labelcost.pdf](http://www.csd.uwo.ca/~yuri/Papers/ijcv10_labelcost.pdf)
+
+
 Installation
 ===============
 libEidomatica is currently only tested on MacOSX and Linux. 
