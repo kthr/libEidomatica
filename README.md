@@ -1,6 +1,6 @@
 Licensing information
 ===============
-The code of this library is build for research purposes and published under the MIT licence. It is part of the [Eidomatica](https://github.com/kthr/Eidomatica) Mathematica package. Third party algorithms/components in the lib directory have their own licence though. Especially the gco algorithm, is only allowed to be redistributed for research purposes.
+The code of this library is build for research purposes and published under the MIT license. It is part of the [Eidomatica](https://github.com/kthr/Eidomatica) Mathematica package. Third party algorithms/components in the lib directory have their own license though. Especially the gco algorithm, is only allowed to be redistributed for research purposes.
 
 Relevant publications:
 
