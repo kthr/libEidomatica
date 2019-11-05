@@ -21,9 +21,9 @@ libEidomatica is currently only tested on MacOSX and Linux.
 Dependencies
 ---------------
 First install the following dependencies:
-    cgal
-    hdf5
-    boost
+    [cgal](https://github.com/CGAL/cgal)
+    [hdf5](https://www.hdfgroup.org/solutions/hdf5/)
+    [boost](https://github.com/boostorg/boost)
 
 ### On Mac (via macports) install
 ```bash
